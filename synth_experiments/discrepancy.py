@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 #rc('text', usetex=True)
 import sobol_seq as sobol
+import dpp_rbf_unitcube
 
 PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199]
 
@@ -112,9 +113,9 @@ def GetMaxKs(vols, max_unif_prob):
 
 
 
-num_rects = 2000
-ds = [15]
-vols = [0.01]
+num_rects = 100
+ds = [3,5,10]
+vols = [0.05]
 maxp_unif = 0.90
 
 
@@ -134,7 +135,8 @@ max_ks = GetMaxKs(vols, maxp_unif)
 
 samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
-	    'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'}}
+	    'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
+	    'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'}}
 
 
 
@@ -162,7 +164,7 @@ for d in ds:
 			alg_to_successes[sampler] = expected_success
 		vol_to_alg[vol] = alg_to_successes
 	d_to_vol[d] = vol_to_alg
-	
+
 
 if pickle_result:
 	import pickle
@@ -183,7 +185,7 @@ for d in ds:
 		plot_stuff(cur_ax, cur_data, num_rects, d, max_ks[vol], vol, samplers)
 
 plt.tight_layout()
-plt.savefig('nrects={}_{}dims_maxp={}_{}vols.pdf'.format(num_rects, len(ds), maxp_unif, len(vols)))
+plt.savefig('dpp_nrects={}_{}dims_maxp={}_{}vols.pdf'.format(num_rects, len(ds), maxp_unif, len(vols)))
 
 
 

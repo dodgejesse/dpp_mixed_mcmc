@@ -4,7 +4,7 @@ from dpp_mcmc_sampler import sample_k_disc_and_cont
 import numpy as np
 
 
-k = 10
+k = 60
 d = 3
 
 sampler = Cube_Sampler(d)
@@ -21,7 +21,7 @@ for m in max_iters:
 
 for i in range(5000):
     for m in max_iters:
-        B_Y, L_Y = sample_k_disc_and_cont(sampler, dist, k, m)
+        B_Y, L_Y, time = sample_k_disc_and_cont(sampler, dist, k, m)
     
         
         
