@@ -103,7 +103,7 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
 
     start_time = time.time()
     print_debug = False
-    use_log_dets = k > 50
+    use_log_dets = k > 20
 
     # should figure out the best thing to do here
     if max_iter is None:
@@ -154,13 +154,15 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
             det_ratio = np.exp(first_logdet - second_logdet)
             # diagnostic things
             if first_sign < 0:
-                print("Problems in using log det for ratio!")
-                print("first sign: {}, logdet: {}".format(first_sign, first_logdet))
+                #print("Problems in using log det for ratio!")
+                #print("first sign: {}, logdet: {}, k: {}, d: {}".format(
+                #        first_sign, first_logdet, k, len(B_Y[0])))
                 proposal_with_neg_det += 1
                 det_ratio = 0
             if second_sign < 0:
                 print("Problems in using log det for ratio!")
-                print("second sign: {}, logdet: {}".format(second_sign, second_logdet))
+                print("second sign: {}, logdet: {}, k: {}, d: {}".format(
+                        second_sign, second_logdet,k, len(B_Y[0])))
                 raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
                        
         # taken from alireza's paper
@@ -182,8 +184,9 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
     end_time = time.time()
     total_time = end_time - start_time
     if proposal_with_neg_det > 0:
-        print "{} out of {} iters ({}%) the proposal had neg det".format(proposal_with_neg_det, max_iter,
-                                               round(100.0*proposal_with_neg_det/max_iter,2))
+        print "{} out of {} iters ({}%) the proposal had neg det. k={}, d={}".format(
+            proposal_with_neg_det, max_iter, round(100.0*proposal_with_neg_det/max_iter,2),
+            k, len(B_Y[0]))
     return B_Y, L_Y, total_time
 
     
@@ -201,10 +204,12 @@ def sample_initial(unif_sampler,k,dist_comp, use_log_dets):
     while cur_det < tolerance:
         B_Y = unif_sampler(k)
         L_Y = dist_comp(B_Y, B_Y)
+        cur_det = np.linalg.det(L_Y)
         num_Y_resampled += 1
         if cur_det > best_found_cur_det:
             best_found_cur_det = cur_det
         if num_Y_resampled > resample_limit:
+            import pdb; pdb.set_trace()
             out_string = "We've tried to sample Y such that L_Y is invertible (has det(L_Y) > 0)" + " but after {} samples we didn't find any with det(L_Y) > {}. The best " + "found determinant was {}."
             print(out_string.format(resample_limit,tolerance, best_found_cur_det))
             raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")

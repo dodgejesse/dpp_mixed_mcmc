@@ -1,3 +1,4 @@
+import sys
 import numpy
 import matplotlib
 import matplotlib.pyplot as plt
@@ -5,6 +6,7 @@ from matplotlib import rc
 #rc('text', usetex=True)
 import sobol_seq as sobol
 import dpp_rbf_unitcube
+
 
 PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199]
 
@@ -21,19 +23,35 @@ def get_discrepency(X):
 		worse_value = max(worse_value, abs(p-p_hat-1./len(X)))
 	return worse_value
 
-def get_min_l2_norm_squared(X):
-	smallest_value = float('inf')
-	for x in X:
-		tmp = numpy.dot(x, x)
-		smallest_value = min(smallest_value, tmp)
-	return smallest_value
+def get_min_norm(X, order):
+	return min(numpy.linalg.norm(X, ord=order, axis=1))
+
+def get_min_l2_norm(X):
+	#smallest_value = float('inf')
+	#for x in X:
+	#	tmp = numpy.dot(x, x)
+	#	smallest_value = min(smallest_value, tmp)
+	#return smallest_value
+	return get_min_norm(X, 2)
 
 def get_min_l1_norm(X):
-	smallest_value = float('inf')
-	for x in X:
-		tmp = numpy.dot(x, numpy.sign(x))
-		smallest_value = min(smallest_value, tmp)
-	return smallest_value
+	#smallest_value = float('inf')
+	#for x in X:
+#		tmp = numpy.dot(x, numpy.sign(x))
+#		smallest_value = min(smallest_value, tmp)0
+#	return smallest_value
+
+	return get_min_norm(X, 1)
+
+def get_min_l2_norm_center(X):
+	center = numpy.ones(X.shape)*.5
+	return get_min_norm(X-center, 2)
+
+def get_min_l1_norm_center(X):
+	center = numpy.ones(X.shape)*.5
+	return get_min_norm(X-center, 1)
+
+
 
 # adds uniform noise in [0,1], then for those results above 1 it subtracts 1
 def SobolSampler(n, d):
@@ -110,25 +128,75 @@ def GetMaxKs(vols, max_unif_prob):
 	return max_ks
 
 
+def random_rect(samplers):
+	num_rects = 200
+	ds = [3,5,10]
+	vols = [0.05]
+	maxp_unif = 0.90
+
+
+	import sys
+	pickle_result = len(sys.argv) > 1
+	if pickle_result:
+		num_rects = int(sys.argv[1])
+		ds = [int(sys.argv[2])]
+		vols = [float(sys.argv[3])]
+		maxp_unif = float(sys.argv[4])
+
+
+	max_ks = GetMaxKs(vols, maxp_unif)
+
+
+	d_to_vol = {}
+
+	for d in ds:
+		vol_to_alg = {}
+		for vol in vols:
+
+			rects = []
+			for i in range(num_rects):
+				rects.append(HyperRectangleTarget(d, vol))
+
+			alg_to_successes = {}
+
+			for sampler in samplers:
+
+				expected_success = {}
+				#import pdb; pdb.set_trace()
+				for i in range(1,max_ks[vol]):
+					X = samplers[sampler]['fn'](i, d)
+					e_s = FracInRects(X, rects)
+					expected_success[i] = e_s
+					print "{} {} {} {} {}".format(d, vol, sampler, i, e_s)
+				alg_to_successes[sampler] = expected_success
+			vol_to_alg[vol] = alg_to_successes
+		d_to_vol[d] = vol_to_alg
+
+
+	if pickle_result:
+		import pickle
+		pickle.dump(d_to_vol, open('pickled_data/rects={}_d={}_vol={}_maxp={}'.format(num_rects, ds[0], vols[0], maxp_unif), 'wb'))
+		exit()
 
 
 
-num_rects = 100
-ds = [3,5,10]
-vols = [0.05]
-maxp_unif = 0.90
+	matplotlib.rcParams.update({'font.size':4})
+	fig = plt.figure()
+	counter = 0
+	for d in ds:
+		for vol in vols: 
+			counter = counter + 1
+			cur_ax = fig.add_subplot(len(ds),len(vols),counter)#, adjustable='box', aspect=100)
+			cur_data = d_to_vol[d][vol]
+			print("{} {}".format(d, vol))
+			plot_stuff(cur_ax, cur_data, num_rects, d, max_ks[vol], vol, samplers)
+
+	plt.tight_layout()
+	plt.savefig('dpp_nrects={}_{}dims_maxp={}_{}vols.pdf'.format(num_rects, len(ds), maxp_unif, len(vols)))
 
 
-import sys
-pickle_result = len(sys.argv) > 1
-if pickle_result:
-	num_rects = int(sys.argv[1])
-	ds = [int(sys.argv[2])]
-	vols = [float(sys.argv[3])]
-	maxp_unif = float(sys.argv[4])
 
-
-max_ks = GetMaxKs(vols, maxp_unif)
+	exit()
 
 
 
@@ -136,75 +204,56 @@ max_ks = GetMaxKs(vols, maxp_unif)
 samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
 	    'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
-	    'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'}}
+	    'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
+	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},}
+
+eval_measures = {'l2':get_min_l2_norm, 
+		 'l1':get_min_l1_norm, 
+		 'l2_cntr':get_min_l2_norm_center, 
+		 'l1_cntr':get_min_l1_norm_center}
+
+
+#random_rect(samplers)
 
 
 
-d_to_vol = {}
-
-for d in ds:
-	vol_to_alg = {}
-	for vol in vols:
-
-		rects = []
-		for i in range(num_rects):
-			rects.append(HyperRectangleTarget(d, vol))
-
-		alg_to_successes = {}
-
-		for sampler in samplers:
-
-			expected_success = {}
-			#import pdb; pdb.set_trace()
-			for i in range(1,max_ks[vol]):
-				X = samplers[sampler]['fn'](i, d)
-				e_s = FracInRects(X, rects)
-				expected_success[i] = e_s
-				print "{} {} {} {} {}".format(d, vol, sampler, i, e_s)
-			alg_to_successes[sampler] = expected_success
-		vol_to_alg[vol] = alg_to_successes
-	d_to_vol[d] = vol_to_alg
 
 
-if pickle_result:
+def origin_center_data(samplers, eval_measures, n_max, sample_num):
+
+	# compute L1, L2 dist from origin and center
+	ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
+	ns = sorted(list(set(ns)))
+	ds = [2,5,10,15]
+	sampler_to_n_err = {}
+	for sampler in samplers:
+		n_to_d_err = {}
+		for n in ns:
+			d_to_measure_err = {}
+			for d in ds:
+				measure_to_err = {}
+				X = samplers[sampler]['fn'](n, d)
+				
+				for measure in eval_measures:
+					measure_to_err[measure] = eval_measures[measure](X)
+				d_to_measure_err[d] = measure_to_err
+			n_to_d_err[n] = d_to_measure_err
+			print("finishd n={}, sampler={}".format(n, sampler))
+		sampler_to_n_err[sampler] = n_to_d_err
+
+
+	#import pdb; pdb.set_trace()
 	import pickle
-	pickle.dump(d_to_vol, open('pickled_data/rects={}_d={}_vol={}_maxp={}'.format(num_rects, ds[0], vols[0], maxp_unif), 'wb'))
+	pickle_loc = 'pickled_data/origin_center_data/nmax={}_nsamplers={}_neval={}_d={}_samplenum={}'.format(n_max,
+			  len(samplers), len(eval_measures), ''.join(str(e)+',' for e in ds)[:-1], sample_num)
+	
+	pickle.dump(sampler_to_n_err, open(pickle_loc, 'wb'))
 	exit()
+	
+					
 
 
-
-matplotlib.rcParams.update({'font.size':4})
-fig = plt.figure()
-counter = 0
-for d in ds:
-	for vol in vols: 
-		counter = counter + 1
-		cur_ax = fig.add_subplot(len(ds),len(vols),counter)#, adjustable='box', aspect=100)
-		cur_data = d_to_vol[d][vol]
-		print("{} {}".format(d, vol))
-		plot_stuff(cur_ax, cur_data, num_rects, d, max_ks[vol], vol, samplers)
-
-plt.tight_layout()
-plt.savefig('dpp_nrects={}_{}dims_maxp={}_{}vols.pdf'.format(num_rects, len(ds), maxp_unif, len(vols)))
-
-
-
-exit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+origin_center_data(samplers, eval_measures, 15, sys.argv[1])
 
 
 

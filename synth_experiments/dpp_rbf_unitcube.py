@@ -14,8 +14,11 @@ import numpy
 def DPPSampler(n, d):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
+    
     dist = rbf_kernel.RBF_Kernel()
+    #dist = rbf_kernel.RBF_Clipped_Kernel()
 
+        
 
     num_iters = int(max(1000, numpy.power(n,2) * d))
     
