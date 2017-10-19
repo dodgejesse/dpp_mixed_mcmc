@@ -224,7 +224,7 @@ def origin_center_data(samplers, eval_measures, n_max, sample_num):
 	# compute L1, L2 dist from origin and center
 	ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
 	ns = sorted(list(set(ns)))
-	ds = [2,5,10,15]
+	ds = [2,5,10,15,25,35]
 	sampler_to_n_err = {}
 	for sampler in samplers:
 		n_to_d_err = {}
@@ -252,8 +252,8 @@ def origin_center_data(samplers, eval_measures, n_max, sample_num):
 	
 					
 
-
-origin_center_data(samplers, eval_measures, 15, sys.argv[1])
+numpy.random.seed()
+origin_center_data(samplers, eval_measures, 40, sys.argv[1])
 
 
 
