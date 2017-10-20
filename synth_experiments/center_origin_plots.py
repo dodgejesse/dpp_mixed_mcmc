@@ -69,6 +69,7 @@ def compute_averages(data):
                     stds[sampler][n][d][measure] = cur_std
                     avgs[sampler][n][d][measure] = np.average(avgs[sampler][n][d][measure])
     print_averages(avgs, stds)
+    
 
 
 def print_averages(avgs, stds):
