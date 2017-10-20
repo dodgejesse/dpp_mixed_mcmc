@@ -73,9 +73,9 @@ def compute_averages(data):
 
 def print_averages(avgs, stds):
     for thing in sorted(avgs['DPPnsquared'][22]):
-        print thing, stds['DPPnsquared'][22][thing]
+        print thing, avgs['DPPnsquared'][22][thing]
     for thing in sorted(avgs['UniformSampler'][22]):
-        print thing, stds['UniformSampler'][22][thing]
+        print thing, avgs['UniformSampler'][22][thing]
 
 compute_averages(data)
  
