@@ -7,7 +7,9 @@ SPOT_REQUEST_ID=`aws ec2 request-spot-instances --spot-price "2.69" --instance-c
 WAIT_SECONDS=5
 while true; do
     SPOT_INST_ID=`aws ec2 describe-spot-instance-requests --spot-instance-request-ids $SPOT_REQUEST_ID | grep InstanceId | awk '{print $2}' | sed s/,// | sed s/\"// | sed s/\"//`
-    if [ ! -z "$SPOT_INST_ID" ]; then
+    NUM_IDS=`echo ${SPOT_INST_ID} | wc -w`
+    if [ "${NUM_IDS}" == "${NUM_INST}" ]; then
+    #if [ ! -z "$SPOT_INST_ID" ]; then
 	echo "successfully got spot instance id: $SPOT_INST_ID"
 	break
     else
@@ -21,7 +23,8 @@ done
 # to get the ip address:
 while true; do
     SPOT_IP=`aws ec2 describe-instances --instance-ids $SPOT_INST_ID | grep PublicIpAddress | awk '{print $2}' | sed s/,// | sed s/\"// | sed s/\"// | sed 's/\./-/g'` 
-    if [ ! -z "$SPOT_IP" ]; then
+    NUM_IPS=`echo ${SPOT_IP} | wc -w`
+    if [ "${NUM_IPS}" == "${NUM_INST}" ]; then
 	echo "successfully got ip address: $SPOT_IP"
 	break
     else
@@ -37,7 +40,7 @@ while true; do
     if [ "$NUM_LINES_PASSED_INIT" == "$(($NUM_INST * 2))" ]; then 
 	break
     else
-	echo "waiting $WAIT_SECONDS second(s) for instance to pass initialization. requires both system status checks and instance status checks to finish."
+	echo "waiting $WAIT_SECONDS second(s) for instance to pass initialization. requires both system status checks and instance status checks to finish. currenty $(( ${NUM_LINES_PASSED_INIT} / 2 )) have passed."
 	sleep $WAIT_SECONDS
     fi
 done
@@ -78,9 +81,9 @@ CUR_IP=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4`
 ###
 # train models and move
 COUNTER=0
-for ONE_SPOT_IP in SPOT_IP; do
+for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
-    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate discrep; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; git fetch; git reset --hard origin/master;  python discrepancy.py ${COUNTER}; bash aws/save_data.sh ${CUR_IP}; ec2-terminate-instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)"
+    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate discrep; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; git fetch; git reset --hard origin/master;  python discrepancy.py ${COUNTER}; bash aws/save_data.sh ${CUR_IP}; ec2-terminate-instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)" &
     let COUNTER+=1
 done
 
