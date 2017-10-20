@@ -219,12 +219,11 @@ eval_measures = {'l2':get_min_l2_norm,
 
 
 
-def origin_center_data(samplers, eval_measures, n_max, sample_num):
+def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 
 	# compute L1, L2 dist from origin and center
 	ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
 	ns = sorted(list(set(ns)))
-	ds = [2,5,10,15,25,35]
 	sampler_to_n_err = {}
 	for sampler in samplers:
 		n_to_d_err = {}
@@ -253,7 +252,9 @@ def origin_center_data(samplers, eval_measures, n_max, sample_num):
 					
 
 numpy.random.seed()
-origin_center_data(samplers, eval_measures, 40, sys.argv[1])
+n_max = 15 # 40
+ds = [10]#[2,5,10,15,25,35]
+origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
 
 
 

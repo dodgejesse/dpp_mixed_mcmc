@@ -1,0 +1,5 @@
+{
+  "ImageId": "ami-9afa38e2",
+  "KeyName": "jesse-key-pair-uswest2",
+  "InstanceType": "c3.4xlarge"
+}
