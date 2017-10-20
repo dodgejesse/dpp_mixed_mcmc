@@ -83,7 +83,7 @@ CUR_IP=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4`
 COUNTER=0
 for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
-    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate discrep; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; git fetch; git reset --hard origin/master;  python discrepancy.py ${COUNTER}; bash aws/save_data.sh ${CUR_IP}; ec2-terminate-instances $(curl -s http://169.254.169.254/latest/meta-data/instance-id)" &
+    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate discrep; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; git fetch; git reset --hard origin/master;  python discrepancy.py ${COUNTER}; bash aws/save_data_and_terminate.sh ${CUR_IP}" &
     let COUNTER+=1
 done
 
