@@ -1,6 +1,8 @@
 import pickle, pprint
 import numpy as np
-
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
             
@@ -30,18 +32,19 @@ def get_eval_measures():
     return eval_measures
 
 
-
+def get_filename():
+    example_filename = 'nmax={}_nsamplers={}_neval={}_d={}'
+    fname = example_filename.format(get_n_max(), len(get_samplers()), len(get_eval_measures()), ''.join(str(e)+',' for e in get_ds())[:-1])
+    return fname
 
 def get_data():
-    example_filename = 'nmax={}_nsamplers={}_neval={}_d={}_samplenum={}'
+    
 
 
     data = {}
 
-    for sample_num in range(101):
-        
-        fname = example_filename.format(get_n_max(), len(get_samplers()), len(get_eval_measures()), ''.join(str(e)+',' for e in get_ds())[:-1], 
-                                        sample_num)
+    for sample_num in range(301):
+        fname = get_filename() + '_samplenum={}'.format(sample_num)
         try:
             pkl_file = open('pickled_data/origin_center_data/' + fname, 'rb')
             data[sample_num] = pickle.load(pkl_file)
@@ -70,7 +73,6 @@ def compute_averages(data):
                     for measure in get_eval_measures():
                         if measure not in avgs[sampler][n][d]:
                             avgs[sampler][n][d][measure] = []
-                        print data[s_num][sampler].keys()
                         avgs[sampler][n][d][measure].append(data[s_num][sampler][n][d][measure])
     
     for sampler in get_samplers():
@@ -81,43 +83,54 @@ def compute_averages(data):
                     stds[sampler][n][d][measure] = cur_std
                     avgs[sampler][n][d][measure] = np.average(avgs[sampler][n][d][measure])
     
-    print_averages(avgs, stds)
-    multiplot_measure_by_d(avgs, stds)
+    #print_averages(avgs, stds)
+    multiplot_measure_by_d(avgs, stds, len(data))
 
 def get_one_plot_data(data, measure, d):
     sampler_to_n = {}
     for sampler in get_samplers():
         n_to_err = {}
         for n in get_ns():
-            n_to_err[n] = [data][sampler][n][d][measure]
+            n_to_err[n] = data[sampler][n][d][measure]
         sampler_to_n[sampler] = n_to_err
     return sampler_to_n
     
-        
 
-def multiplot_measure_by_d(avgs, stds):
+
+def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':4})
     fig = plt.figure()
     counter = 0
-    cur_measures = ['l2', 'l2_cntr']
-    for measure in cur_measures:
-        for d in ds:
+    measures = ['l2', 'l2_cntr']
+    ds = [get_ds()[0], get_ds()[1], get_ds()[2]]
+    for d in ds:
+        for measure in measures:
             counter = counter + 1
-            cur_ax = fig.add_subplot(len(ds),len(cur_measures),counter)#, adjustable='box', aspect=100)
+            cur_ax = fig.add_subplot(len(ds),len(measures),counter)#, adjustable='box', aspect=100)
             cur_avgs = get_one_plot_data(avgs, measure, d)
             cur_stds = get_one_plot_data(stds, measure, d)
 
-            plot_stuff(cur_ax, cur_avgs, cur_stds, measure, d)
+            one_plot(cur_ax, cur_avgs, cur_stds, measure, d)
 
     plt.tight_layout()
-    plt.savefig('dpp_nrects={}_{}dims_maxp={}_{}vols.pdf'.format(num_rects, len(ds), maxp_unif, len(vols)))
+    out_fname = get_filename() + '_nsamples={}.pdf'.format(num_samples)
+    plt.savefig('plots/' + out_fname)
 
 
 # takes cur_avgs which is sampler -> n -> err
-def plot_stuff(cur_ax, cur_avgs, cur_sts, measure, d):
+def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     
-    for sampler in cur_avgs:
-        cur_ax.plot(cur_avgs[sampler].keys(), cur_avgs[sampler].values(), color=get_samplers()[sampler])
+    cur_samplers = {'SobolSampler':-1.0/3, 'DPPnsquared':0, 'UniformSampler':1.0/3}
+    
+    for sampler in cur_samplers:
+        ns = sorted(cur_avgs[sampler].keys())
+        ns_offset = [cur_samplers[sampler] + n for n in ns]
+        errs = [cur_avgs[sampler][n] for n in ns]
+        err_stds = [cur_stds[sampler][n] for n in ns]
+        #cur_ax.plot(ns, errs, color=get_samplers()[sampler])
+        #cur_ax.set_xscale('log')
+        #cur_ax.set_yscale('log')        
+        cur_ax.errorbar(ns_offset, errs, yerr=err_stds, color=get_samplers()[sampler], elinewidth=0.5)
         
 	
 
