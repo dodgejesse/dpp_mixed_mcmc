@@ -1,3 +1,12 @@
+if [ "$STY" = "" ]
+then
+    echo "not in screen! please start a screen session to run this script"
+    exit 1
+fi
+
+
+
+
 NUM_INST=100
 SPOT_REQUEST_ID=`aws ec2 request-spot-instances --spot-price "2.69" --instance-count $NUM_INST --type "one-time" --launch-specification file://specification.json | grep SpotInstanceRequestId | awk '{print $2}' | sed s/,// | sed s/\"// | sed s/\"//`
 
