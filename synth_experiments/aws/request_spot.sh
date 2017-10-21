@@ -7,7 +7,7 @@ fi
 
 
 
-NUM_INST=100
+NUM_INST=50
 SPOT_REQUEST_ID=`aws ec2 request-spot-instances --spot-price "2.69" --instance-count $NUM_INST --type "one-time" --launch-specification file://specification.json | grep SpotInstanceRequestId | awk '{print $2}' | sed s/,// | sed s/\"// | sed s/\"//`
 
 
@@ -87,12 +87,17 @@ CUR_IP=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4`
 
 
 
+
 ###
 # train models and move
-COUNTER=100
+COUNTER=300
 for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
-    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate discrep; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; git fetch; git reset --hard origin/master;  python discrepancy.py ${COUNTER}; bash aws/save_data_and_terminate.sh ${CUR_IP}" &
+
+    #COMMANDS="python discrepancy.py ${COUNTER}_0; python discrepancy.py ${COUNTER}_1; python discrepancy.py ${COUNTER}_2; python discrepancy.py ${COUNTER}_3; python discrepancy.py ${COUNTER}_4; python discrepancy.py ${COUNTER}_5; python discrepancy.py ${COUNTER}_6; python discrepancy.py ${COUNTER}_7; python discrepancy.py ${COUNTER}_8; python discrepancy.py ${COUNTER}_9;"
+    COMMANDS="python discrepancy.py ${COUNTER}"
+
+    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate discrep; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; git fetch; git reset --hard origin/master; rm /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/origin_center_data/*; $COMMANDS; bash aws/save_data_and_terminate.sh ${CUR_IP}" &
     let COUNTER+=1
 done
 
