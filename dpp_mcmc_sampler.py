@@ -195,16 +195,23 @@ def sample_initial(unif_sampler,k,dist_comp, use_log_dets):
     resample_limit = 10000
     B_Y = unif_sampler(k)
     num_Y_resampled = 0
-    tolerance = 10**-200
+    L_Y = dist_comp(B_Y, B_Y)
     if use_log_dets:
         tolerance = 0
-    L_Y = dist_comp(B_Y, B_Y)
-    cur_det = np.linalg.det(L_Y)
+        sign, logdet = np.linalg.slogdet(L_Y)
+        cur_det = sign
+    else:
+        tolerance = 10**-200
+        cur_det = np.linalg.det(L_Y)
     best_found_cur_det = cur_det
     while cur_det < tolerance:
         B_Y = unif_sampler(k)
         L_Y = dist_comp(B_Y, B_Y)
-        cur_det = np.linalg.det(L_Y)
+        if use_log_dets:
+            sign, logdet = np.linalg.slogdet(L_Y)
+            cur_det = sign
+        else:
+            cur_det = np.linalg.det(L_Y)
         num_Y_resampled += 1
         if cur_det > best_found_cur_det:
             best_found_cur_det = cur_det

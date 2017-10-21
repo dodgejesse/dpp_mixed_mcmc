@@ -120,7 +120,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 # takes cur_avgs which is sampler -> n -> err
 def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     
-    cur_samplers = {'SobolSampler':-1.0/3, 'DPPnsquared':0, 'UniformSampler':1.0/3}
+    cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':0, 'UniformSampler':1.0/4}
     
     for sampler in cur_samplers:
         ns = sorted(cur_avgs[sampler].keys())
@@ -130,7 +130,10 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
         #cur_ax.plot(ns, errs, color=get_samplers()[sampler])
         #cur_ax.set_xscale('log')
         #cur_ax.set_yscale('log')        
-        cur_ax.errorbar(ns_offset, errs, yerr=err_stds, color=get_samplers()[sampler], elinewidth=0.5)
+        line,_,_ = cur_ax.errorbar(ns_offset, errs, yerr=err_stds, color=get_samplers()[sampler], elinewidth=0.5)
+        line.set_label(sampler)
+        cur_ax.legend()
+        
         
 	
 
