@@ -108,7 +108,7 @@ def get_one_plot_data(data, measure, d):
 def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':4})
     fig = plt.figure(figsize=(10,10))
-    fig.suptitle("L_2^2 (left two columns) and L_1 (right two columns) from the origin and the center, with n between 1 and 55. shaded is 45th to 55th percentile\nDPP is using an RBF kernel = exp(-g*||x-y||^2), with g=1/d", 
+    fig.suptitle("L_2^2 (left two columns) and L_1 (right two columns) from the origin and the center, with n between 1 and 55. shaded is 45th to 55th percentile.\nDPP is using an RBF kernel = exp(-g*||x-y||^2), with g=1/d", 
                  fontsize=8)
 
     counter = 0
@@ -155,7 +155,7 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
             sampler_label = 'DPP'
         else:
             sampler_label = sampler
-
+        
         cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler], label=sampler_label)
         cur_ax.fill_between(ns_offset, err_ls, err_us, alpha=.1, color=get_samplers()[sampler])
         cur_ax.set_xscale('log')
@@ -165,8 +165,8 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     
         
 	
-
-    cur_ax.set_title('measure={} d={}'.format(measure, d))
+    measure_names = {'l2':'L2^2_from_origin', 'l2_cntr':'L2^2_from_center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center'}
+    cur_ax.set_title('measure={} d={}'.format(measure_names[measure], d))
 
 
 

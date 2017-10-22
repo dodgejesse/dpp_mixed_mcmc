@@ -95,8 +95,8 @@ for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
 
     COMMANDS=""
-    for i in `seq 1 3`; do
-	COMMANDS="$COMMANDS python make_heatmap_data ${COUNTER}_${i};"
+    for i in `seq 1 50`; do
+	COMMANDS="$COMMANDS python make_heatmap_data.py ${COUNTER}_${i};"
     done
 
     #COMMANDS="python discrepancy.py ${COUNTER}"
