@@ -27,7 +27,7 @@ def DPPSampler(n, d):
     for i in range(num_retries):
         try:
             B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
-            print("took {} tries".format(i+1))
+            
             return B_Y
         except:
             pass
