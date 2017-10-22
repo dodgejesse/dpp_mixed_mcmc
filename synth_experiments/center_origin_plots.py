@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
             
 def get_samplers():
     samplers = {'SobolSampler': 'g',
-                'RecurrenceSampler': 'r',
-                'SobolSamplerNoNoise': 'b',
-                'DPPnsquared': 'k',
-                'UniformSampler': 'c'}
+                'RecurrenceSampler': 'k',
+                'SobolSamplerNoNoise': 'c',
+                'DPPnsquared': 'r',
+                'UniformSampler': 'b'}
     return samplers
 
 def get_n_max():
@@ -43,13 +43,15 @@ def get_data():
 
     data = {}
 
-    for sample_num in range(301):
-        fname = get_filename() + '_samplenum={}'.format(sample_num)
-        try:
-            pkl_file = open('pickled_data/origin_center_data/' + fname, 'rb')
-            data[sample_num] = pickle.load(pkl_file)
-        except:
-            pass
+    for sample_counter in range(301):
+        for sample_subcounter in range(1,4):
+            sample_num = '{}_{}'.format(sample_counter, sample_subcounter)
+            fname = get_filename() + '_samplenum=' + sample_num
+            try:
+                pkl_file = open('pickled_data/origin_center_data/' + fname, 'rb')
+                data[sample_num] = pickle.load(pkl_file)
+            except:
+                pass
     return data
 
 
@@ -79,10 +81,16 @@ def compute_averages(data):
         for n in get_ns():
             for d in get_ds():
                 for measure in get_eval_measures():
+                    if measure == 'l2' or measure == 'l2_cntr':
+                        avgs[sampler][n][d][measure] = np.array(avgs[sampler][n][d][measure])
+                        avgs[sampler][n][d][measure] = avgs[sampler][n][d][measure]*avgs[sampler][n][d][measure]
+                    err_us = sorted(avgs[sampler][n][d][measure])[int(.55*len(avgs[sampler][n][d][measure]))]
+                    err_ls = sorted(avgs[sampler][n][d][measure])[int(.45*len(avgs[sampler][n][d][measure]))]
                     cur_std = np.std(avgs[sampler][n][d][measure])
-                    stds[sampler][n][d][measure] = cur_std
-                    avgs[sampler][n][d][measure] = np.average(avgs[sampler][n][d][measure])
-    
+                    stds[sampler][n][d][measure] = [cur_std, err_ls, err_us]
+
+                    avgs[sampler][n][d][measure] = np.average(avgs[sampler][n][d][measure])                                                                  
+                                                                  
     #print_averages(avgs, stds)
     multiplot_measure_by_d(avgs, stds, len(data))
 
@@ -99,10 +107,13 @@ def get_one_plot_data(data, measure, d):
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':4})
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,10))
+    fig.suptitle("L_2^2 (left two columns) and L_1 (right two columns) from the origin and the center, with n between 1 and 55. shaded is 45th to 55th percentile\nDPP is using an RBF kernel = exp(-g*||x-y||^2), with g=1/d", 
+                 fontsize=8)
+
     counter = 0
-    measures = ['l2', 'l2_cntr']
-    ds = [get_ds()[0], get_ds()[1], get_ds()[2]]
+    measures = ['l2', 'l2_cntr', 'l1', 'l1_cntr']
+    ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
     for d in ds:
         for measure in measures:
             counter = counter + 1
@@ -112,7 +123,9 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
             one_plot(cur_ax, cur_avgs, cur_stds, measure, d)
 
+
     plt.tight_layout()
+    fig.subplots_adjust(top=0.93)
     out_fname = get_filename() + '_nsamples={}.pdf'.format(num_samples)
     plt.savefig('plots/' + out_fname)
 
@@ -120,20 +133,36 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 # takes cur_avgs which is sampler -> n -> err
 def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     
-    cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':0, 'UniformSampler':1.0/4}
+    #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':0, 'UniformSampler':1.0/4}
+    #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':-1.0/12, 'RecurrenceSampler':1.0/12, 'UniformSampler':1.0/4}
+
+    cur_samplers = {'SobolSampler':0, 'RecurrenceSampler':0, 'UniformSampler':0, 'DPPnsquared':0}
     
     for sampler in cur_samplers:
         ns = sorted(cur_avgs[sampler].keys())
         ns_offset = [cur_samplers[sampler] + n for n in ns]
         errs = [cur_avgs[sampler][n] for n in ns]
         err_stds = [cur_stds[sampler][n] for n in ns]
+        err_ls = [err_stds[i][1] for i in range(len(err_stds))]
+        err_us = [err_stds[i][2] for i in range(len(err_stds))]
         #cur_ax.plot(ns, errs, color=get_samplers()[sampler])
-        #cur_ax.set_xscale('log')
-        #cur_ax.set_yscale('log')        
-        line,_,_ = cur_ax.errorbar(ns_offset, errs, yerr=err_stds, color=get_samplers()[sampler], elinewidth=0.5)
-        line.set_label(sampler)
-        cur_ax.legend()
         
+        #line,_,_ = cur_ax.errorbar(ns_offset, errs, yerr=err_stds, color=get_samplers()[sampler], elinewidth=0.5, linewidth=0.5)
+        
+        #line.set_label(sampler)
+
+        if 'DPP' in sampler:
+            sampler_label = 'DPP'
+        else:
+            sampler_label = sampler
+
+        cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler], label=sampler_label)
+        cur_ax.fill_between(ns_offset, err_ls, err_us, alpha=.1, color=get_samplers()[sampler])
+        cur_ax.set_xscale('log')
+        cur_ax.set_yscale('log')
+        cur_ax.grid(True, which="both")
+        cur_ax.legend()
+    
         
 	
 
