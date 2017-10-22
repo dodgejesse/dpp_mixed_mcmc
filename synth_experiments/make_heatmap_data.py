@@ -20,6 +20,6 @@ def draw_all_samples(ks, sample_num):
 					
 
 np.random.seed()
-k_max = 20
+k_max = 55
 ks = range(1,k_max+1,2)
 draw_all_samples(ks, sys.argv[1])
