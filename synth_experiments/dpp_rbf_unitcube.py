@@ -11,12 +11,15 @@ import dpp_mcmc_sampler
 import numpy
 
 
-def DPPSampler(n, d):
+def DPPSampler(n, d, clip_type=None):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
     
-    dist = rbf_kernel.RBF_Kernel()
-    #dist = rbf_kernel.RBF_Clipped_Kernel()
+    
+    if clip_type is None:
+        dist = rbf_kernel.RBF_Kernel()
+    else:
+        dist = rbf_kernel.RBF_Clipped_Kernel(clip_type)
 
         
 

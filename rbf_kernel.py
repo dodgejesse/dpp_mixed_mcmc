@@ -3,26 +3,41 @@ import numpy as np
 
 class RBF_Kernel():
     def __call__(self,B,B_prime,g=None):
-        g=1.0/(B.shape[1]*B.shape[0])
+        #g=1.0/(B.shape[1]*B.shape[0])
         # default for gamma is 1/d
         L_Y = sklearn.metrics.pairwise.rbf_kernel(B,B_prime,gamma=g)
         return L_Y
 
-# if x_i-y_i > epsilon, set it to 1 (the max value)
+
 
 class RBF_Clipped_Kernel():
-    def __call__(self, B, B_prime, epsilon=None, gamma=None):
+    def __init__(self, clip_type):
+        self.clip_type=clip_type
+
+
+    def __call__(self, B, B_prime, gamma=None):
         #import pdb; pdb.set_trace()
         d = len(B[0])
         L_Y = []
-        if epsilon is None:
+
+        assert self.clip_type == 'k' or self.clip_type == 'd'
+        if self.clip_type == "k":
+            # epsilon = 1-sqrt(1-(fraction of n points we want this to depend on)^d)
+            # if we want each point to have non-zero distance with half the others, assuming uniform:
+            # epsilon = 1-sqrt(1-(1/2)^d)
+            frac_of_k = 1.0/2 # could also try sqrt(n)/n = 1/sqrt(n)
+            epsilon = 1-np.sqrt(1-frac_of_k**d)
+        elif self.clip_type == "d":
             # epsilon = 1-1.0/len(B)
             # to keep expected number of non-zero dimension distances to p:
             # 1/2 +- sqrt(1+p/d)/2  <--- might be wrong
             # to keep the expected number of non-zero distances to 2:
             # 1-sqrt(1-2/d)
             # another idea: set so only half of the points influence a given point, in expect
-            epsilon = 1-np.sqrt(1-2.0/d)
+            frac_of_d = 2.0/d
+            epsilon = 1-np.sqrt(1-frac_of_d)
+
+        
         if gamma is None:
             gamma = 1.0/d
         for i in range(len(B_prime)):
@@ -30,3 +45,4 @@ class RBF_Clipped_Kernel():
             L_Y.append(np.exp(-gamma*np.sum(to_be_summed,axis=1)))
             
         return L_Y
+

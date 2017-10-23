@@ -1,13 +1,5 @@
 {
     "ImageId": "ami-be73b1c6",
     "KeyName": "jesse-key-pair-uswest2",
-    "InstanceType": "c3.4xlarge",
-    "BlockDeviceMappings": [
-	{
-	    "Ebs": {
-		"DeleteOnTermination": true,
-		"VolumeSize": 40,
-	    },
-	}
-    ],
+    "InstanceType": "c3.4xlarge"
 }
