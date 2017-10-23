@@ -3,7 +3,7 @@ import numpy as np
 
 class RBF_Kernel():
     def __call__(self,B,B_prime,g=None):
-        g=B.shape[0]*1.0/(B.shape[1])
+        g=1.0/(B.shape[1]*B.shape[0])
         # default for gamma is 1/d
         L_Y = sklearn.metrics.pairwise.rbf_kernel(B,B_prime,gamma=g)
         return L_Y
