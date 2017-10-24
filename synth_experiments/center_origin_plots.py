@@ -11,7 +11,8 @@ def get_samplers():
                 'RecurrenceSampler': 'k',
                 'SobolSamplerNoNoise': 'c',
                 'DPPnsquared': 'r',
-                'UniformSampler': 'b'}
+                'UniformSampler': 'b',
+                'DPPClipped': 'm'}
     return samplers
 
 def get_n_max():

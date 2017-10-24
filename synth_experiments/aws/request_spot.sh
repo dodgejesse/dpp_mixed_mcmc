@@ -95,7 +95,7 @@ for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
 
     COMMANDS=""
-    for i in `seq 1 3`; do
+    for i in `seq 1 10`; do
 	COMMANDS="$COMMANDS python discrepancy.py ${COUNTER}_${i};"
     done
 

@@ -4,8 +4,8 @@ import zero_one_cube_unif_sampler
 import numpy as np
 import dpp_mcmc_sampler
 
-ds = [15,25]
-ns = [5,10,15,25,35]#range(1,8,2)
+ds = [10]
+ns = range(1,56,2)
 
 #import pdb; pdb.set_trace()
 
