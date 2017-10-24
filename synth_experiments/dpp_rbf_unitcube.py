@@ -11,6 +11,9 @@ import dpp_mcmc_sampler
 import numpy
 
 
+def DPPClippedSampler(n,d):
+    return DPPSampler(n,d,'k')
+
 def DPPSampler(n, d, clip_type=None):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)

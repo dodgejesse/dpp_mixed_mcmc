@@ -205,7 +205,9 @@ samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
 	    'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},}
+	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
+            'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
+    }
 
 eval_measures = {'l2':get_min_l2_norm, 
 		 'l1':get_min_l1_norm, 
@@ -242,6 +244,7 @@ def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 
 
 	#import pdb; pdb.set_trace()
+
 	import pickle
 	pickle_loc = 'pickled_data/origin_center_data/nmax={}_nsamplers={}_neval={}_d={}_samplenum={}'.format(n_max,
 			  len(samplers), len(eval_measures), ''.join(str(e)+',' for e in ds)[:-1], sample_num)
@@ -253,7 +256,7 @@ def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 
 numpy.random.seed()
 n_max = 55
-ds = [2,3,5,10,15,25,35]
+ds = [5]
 origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
 
 

@@ -90,7 +90,7 @@ CUR_IP=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4`
 
 ###
 # train models and move
-COUNTER=50
+COUNTER=0
 for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
 
