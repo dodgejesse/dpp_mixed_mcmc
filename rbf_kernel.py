@@ -26,7 +26,8 @@ class RBF_Clipped_Kernel():
             # if we want each point to have non-zero distance with half the others, assuming uniform:
             # epsilon = 1-sqrt(1-(1/2)^d)
             frac_of_k = 1.0/2 # could also try sqrt(n)/n = 1/sqrt(n)
-            epsilon = 1-np.sqrt(1-frac_of_k**d)
+            epsilon = 1-np.sqrt(1-(1-frac_of_k**(1.0/d)))
+
         elif self.clip_type == "d":
             # epsilon = 1-1.0/len(B)
             # to keep expected number of non-zero dimension distances to p:

@@ -4,14 +4,16 @@ import zero_one_cube_unif_sampler
 import numpy as np
 import dpp_mcmc_sampler
 
-ds = [2]
-ns = range(1,8,2)
+ds = [15,25]
+ns = [5,10,15,25,35]#range(1,8,2)
 
 #import pdb; pdb.set_trace()
 
 
 dist = rbf_kernel.RBF_Clipped_Kernel('k')
 
+
+num_influential = {}
 
 #for i in [1,10,25]:
 for d in ds:
@@ -21,13 +23,25 @@ for d in ds:
     
         B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
         print n,d
-        for L_Y_i in L_Y:
-            print str(L_Y_i).replace('\n','')
+        frac_of_k = 1.0/2
+        epsilon = 1-np.sqrt(1-(1-frac_of_k**(1.0/d)))
 
+        print "epsilon = {}".format(epsilon)
+        #for L_Y_i in L_Y:
+        #    print str(L_Y_i).replace('\n','')
+
+        num_at_min = np.sum(L_Y == np.exp(-1))/2.0
+        total_sims = (n-1)*n/2.0
+        num_influential['{},{}'.format(n,d)] = num_at_min/total_sims
+        
+        print 'num at min sim: {}, or {} out of {}'.format(round(num_at_min/total_sims,3), num_at_min, total_sims)
         sign, logdet = np.linalg.slogdet(L_Y)
         print "log determinant: {}".format(logdet)
-        print B_Y
+        #print B_Y
         print("")
+
+for thing in num_influential:
+    print thing, num_influential[thing]
 
     # compare uniform sampling vs dpp
 
