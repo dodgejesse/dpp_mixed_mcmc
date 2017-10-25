@@ -112,7 +112,7 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
 
     #import pdb; pdb.set_trace()
 
-    B_Y, L_Y = sample_initial(unif_sampler, k, dist_comp, use_log_dets)
+    unfeat_B_Y, B_Y, L_Y = sample_initial(unif_sampler, k, dist_comp, use_log_dets)
 
     if print_debug:
         numerator_counter = 0
@@ -130,9 +130,11 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
             print "iter {} out of {}, after {} seconds".format(i, max_iter, 
                                                                time.time() - start_time)
         u_index = rng.choice(range(len(L_Y)))
-        v_feat_vect = unif_sampler(1)
+        v_unfeat_vect, v_feat_vect = unif_sampler(1)
+        
         
         B_Y_minus_u = np.delete(B_Y, u_index,0)
+        
         
         # L_Y_prime is L_Y minus u plus v
         B_Y_prime = np.vstack([B_Y_minus_u, v_feat_vect])
@@ -171,6 +173,8 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
 
         if rng.uniform() <= p:
             steps_taken += 1
+            del unfeat_B_Y[u_index]
+            unfeat_B_Y.append(v_unfeat_vect)
             B_Y = B_Y_prime
             L_Y = L_Y_prime
         
@@ -187,13 +191,14 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
         print "{} out of {} iters ({}%) the proposal had neg det. k={}, d={}".format(
             proposal_with_neg_det, max_iter, round(100.0*proposal_with_neg_det/max_iter,2),
             k, len(B_Y[0]))
-    return B_Y, L_Y, total_time
+    return unfeat_B_Y, B_Y, L_Y, total_time
 
     
 def sample_initial(unif_sampler,k,dist_comp, use_log_dets):
     # number of resamples to try:
     resample_limit = 10000
-    B_Y = unif_sampler(k)
+    unfeat_B_Y, B_Y = unif_sampler(k)
+    
     num_Y_resampled = 0
     L_Y = dist_comp(B_Y, B_Y)
     if use_log_dets:
@@ -205,7 +210,7 @@ def sample_initial(unif_sampler,k,dist_comp, use_log_dets):
         cur_det = np.linalg.det(L_Y)
     best_found_cur_det = cur_det
     while cur_det < tolerance:
-        B_Y = unif_sampler(k)
+        unfeat_B_Y, B_Y= unif_sampler(k)
         L_Y = dist_comp(B_Y, B_Y)
         if use_log_dets:
             sign, logdet = np.linalg.slogdet(L_Y)
@@ -220,7 +225,7 @@ def sample_initial(unif_sampler,k,dist_comp, use_log_dets):
             out_string = "We've tried to sample Y such that L_Y is invertible (has det(L_Y) > 0)" + " but after {} samples we didn't find any with det(L_Y) > {}. The best " + "found determinant was {}."
             print(out_string.format(resample_limit,tolerance, best_found_cur_det))
             raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
-    return B_Y, L_Y
+    return unfeat_B_Y, B_Y, L_Y
 
 
 

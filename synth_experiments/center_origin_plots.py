@@ -45,7 +45,7 @@ def get_data():
     data = {}
 
     for sample_counter in range(301):
-        for sample_subcounter in range(1,4):
+        for sample_subcounter in range(1,11):
             sample_num = '{}_{}'.format(sample_counter, sample_subcounter)
             fname = get_filename() + '_samplenum=' + sample_num
             try:
@@ -129,6 +129,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     fig.subplots_adjust(top=0.93)
     out_fname = get_filename() + '_nsamples={}.pdf'.format(num_samples)
     plt.savefig('plots/' + out_fname)
+    print("saving to plots/{}".format(out_fname))
 
 
 # takes cur_avgs which is sampler -> n -> err
@@ -137,7 +138,7 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':0, 'UniformSampler':1.0/4}
     #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':-1.0/12, 'RecurrenceSampler':1.0/12, 'UniformSampler':1.0/4}
 
-    cur_samplers = {'SobolSampler':0, 'RecurrenceSampler':0, 'UniformSampler':0, 'DPPnsquared':0}
+    cur_samplers = {'SobolSampler':0, 'RecurrenceSampler':0, 'UniformSampler':0, 'DPPnsquared':0, 'DPPClipped':0}
     
     for sampler in cur_samplers:
         ns = sorted(cur_avgs[sampler].keys())

@@ -4,8 +4,10 @@ import zero_one_cube_unif_sampler
 import numpy as np
 import dpp_mcmc_sampler
 
-ds = [10]
-ns = range(1,56,2)
+ds = [3]
+n_max = 55
+ns = [int(np.exp(x)) for x in np.linspace(0, np.log(n_max), 20)]
+ns = sorted(list(set(ns)))
 
 #import pdb; pdb.set_trace()
 
@@ -40,7 +42,8 @@ for d in ds:
         #print B_Y
         print("")
 
-for thing in num_influential:
+
+for thing in sorted(num_influential):
     print thing, num_influential[thing]
 
     # compare uniform sampling vs dpp
