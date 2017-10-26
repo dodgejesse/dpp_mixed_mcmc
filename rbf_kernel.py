@@ -2,10 +2,17 @@ import sklearn.metrics
 import numpy as np
 
 class RBF_Kernel():
+    def __init__(self, gamma = None):
+        self.g = gamma
+
+
     def __call__(self,B,B_prime,g=None):
         #g=1.0/(B.shape[1]*B.shape[0])
         # default for gamma is 1/d
-        L_Y = sklearn.metrics.pairwise.rbf_kernel(B,B_prime,gamma=g)
+        if not self.g is None:
+            L_Y = sklearn.metrics.pairwise.rbf_kernel(B,B_prime,gamma=self.g)
+        else:
+            L_Y = sklearn.metrics.pairwise.rbf_kernel(B,B_prime,gamma=g)
         return L_Y
 
 

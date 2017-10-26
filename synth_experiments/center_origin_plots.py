@@ -25,11 +25,11 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [2,3,5,10,15,25,35]
+    ds = [2,3,5,10]#[2,3,5,10,15,25,35]
     return ds
 
 def get_eval_measures():
-    eval_measures = ['l2', 'l1', 'l2_cntr', 'l1_cntr']
+    eval_measures = ['l2', 'l1', 'l2_cntr', 'l1_cntr', 'discrep']
     return eval_measures
 
 
@@ -113,8 +113,10 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
                  fontsize=8)
 
     counter = 0
-    measures = ['l2', 'l2_cntr', 'l1', 'l1_cntr']
-    ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
+    measures = ['discrep', 'l2', 'l2_cntr']#, 'l1', 'l1_cntr']
+    ds = get_ds()
+    #ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
+    
     for d in ds:
         for measure in measures:
             counter = counter + 1
@@ -167,7 +169,7 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     
         
 	
-    measure_names = {'l2':'L2^2_from_origin', 'l2_cntr':'L2^2_from_center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center'}
+    measure_names = {'l2':'L2^2_from_origin', 'l2_cntr':'L2^2_from_center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star_discrepancy'}
     cur_ax.set_title('measure={} d={}'.format(measure_names[measure], d))
 
 
