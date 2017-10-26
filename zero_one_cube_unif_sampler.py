@@ -6,6 +6,7 @@ class Cube_Sampler():
 
     # returns a numpy array of dimension nxd
     def __call__(self, n):
-        return numpy.random.rand(n,self.d)
+        to_return = numpy.random.rand(n,self.d)
+        return numpy.ndarray.tolist(to_return), to_return
 
     

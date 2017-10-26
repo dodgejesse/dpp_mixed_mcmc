@@ -7,7 +7,7 @@ fi
 
 
 
-NUM_INST=100
+NUM_INST=2
 SPOT_REQUEST_ID=`aws ec2 request-spot-instances --spot-price "2.69" --instance-count $NUM_INST --type "one-time" --launch-specification file://specification.json | grep SpotInstanceRequestId | awk '{print $2}' | sed s/,// | sed s/\"// | sed s/\"//`
 
 
@@ -95,7 +95,7 @@ for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
 
     COMMANDS=""
-    for i in `seq 1 10`; do
+    for i in `seq 1 2`; do
 	COMMANDS="$COMMANDS python discrepancy.py ${COUNTER}_${i};"
     done
 

@@ -212,7 +212,8 @@ samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 eval_measures = {'l2':get_min_l2_norm, 
 		 'l1':get_min_l1_norm, 
 		 'l2_cntr':get_min_l2_norm_center, 
-		 'l1_cntr':get_min_l1_norm_center}
+		 'l1_cntr':get_min_l1_norm_center,
+                 'discrep':get_discrepency}
 
 
 #random_rect(samplers)
@@ -255,8 +256,8 @@ def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 					
 
 numpy.random.seed()
-n_max = 55
-ds = [2,3,5,10,15,25,35]
+n_max = 15
+ds = [2,3,5,10]
 origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
 
 

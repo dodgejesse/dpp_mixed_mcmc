@@ -32,12 +32,12 @@ def DPPSampler(n, d, clip_type=None):
     # tries five times to get a sample
     for i in range(num_retries):
         try:
-            B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
+            unfeat_B_Y, B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
             
             return B_Y
         except:
             pass
 
 
-    #print("{} iters took {} seconds".format(num_iters, time))
+    print("FAILED!!!")
     return B_Y
