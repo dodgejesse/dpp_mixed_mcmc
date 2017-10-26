@@ -256,7 +256,7 @@ def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 					
 
 numpy.random.seed()
-n_max = 15
+n_max = 55
 ds = [2,3,5,10]
 origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
 
