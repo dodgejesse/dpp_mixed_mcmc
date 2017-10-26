@@ -12,15 +12,18 @@ import numpy
 
 
 def DPPClippedSampler(n,d):
-    return DPPSampler(n,d,'k')
+    return DPPSampler(n,d,clip_type='k')
 
-def DPPSampler(n, d, clip_type=None):
+def DPPNarrow(n,d):
+    return DPPSampler(n,d,gamma=8)
+
+def DPPSampler(n, d, clip_type=None,gamma=None):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
     
     
     if clip_type is None:
-        dist = rbf_kernel.RBF_Kernel()
+        dist = rbf_kernel.RBF_Kernel(gamma)
     else:
         dist = rbf_kernel.RBF_Clipped_Kernel(clip_type)
 

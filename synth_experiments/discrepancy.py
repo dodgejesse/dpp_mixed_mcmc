@@ -206,7 +206,8 @@ samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
 	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
-            'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
+            'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'}
+            #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
     }
 
 eval_measures = {'l2':get_min_l2_norm, 
@@ -257,7 +258,7 @@ def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 
 numpy.random.seed()
 n_max = 55
-ds = [2,3,5,10]
+ds = [2,3,5,7]
 origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
 
 
