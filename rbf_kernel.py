@@ -18,6 +18,8 @@ class RBF_Clipped_Kernel():
     def __call__(self, B, B_prime, gamma=None):
         #import pdb; pdb.set_trace()
         d = len(B[0])
+        B = np.array(B)
+        B_prime = np.array(B_prime)
         L_Y = []
 
         assert self.clip_type == 'k' or self.clip_type == 'd'
