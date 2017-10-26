@@ -354,7 +354,7 @@ def sample_k(items, L, k, max_nb_iterations=None, rng=np.random):
                 both_neg_counter += 1
 
 
-        p = min(1,  numerator/denom)
+        p = 0.5 * min(1,  numerator/denom)
         
         # to print if we have some problems with small or zero determinants / eigenvalues
         if print_debug:
