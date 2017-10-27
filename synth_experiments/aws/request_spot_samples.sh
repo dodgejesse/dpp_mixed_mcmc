@@ -95,14 +95,14 @@ for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
 
     COMMANDS=""
-    for i in `seq 1 3`; do
+    for i in `seq 1 1`; do
 	COMMANDS="$COMMANDS python discrepancy.py ${COUNTER}_${i};"
     done
 
     #COMMANDS="python discrepancy.py ${COUNTER}"
 
 
-    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate arkcat; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; git fetch; git reset --hard origin/master; $COMMANDS bash aws/save_data_and_terminate.sh ${CUR_IP}" &
+    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate arkcat; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; mkdir /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/all_samples; git fetch; git reset --hard origin/master; $COMMANDS bash aws/save_data_and_terminate_samples.sh ${CUR_IP}" &
     let COUNTER+=1
 done
 

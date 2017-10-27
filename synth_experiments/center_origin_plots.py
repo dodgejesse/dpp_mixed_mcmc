@@ -12,8 +12,17 @@ def get_samplers():
                 'SobolSamplerNoNoise': 'c',
                 'DPPnsquared': 'r',
                 'UniformSampler': 'b',
-                'DPPClipped': 'm'}
+                'DPPNarrow': 'm'}
     return samplers
+
+def get_sampler_names():
+    sampler_names = {'SobolSampler': 'Sobol',
+                'RecurrenceSampler': 'Add Recurrence',
+                'SobolSamplerNoNoise': 'Sobol No Noise',
+                'DPPnsquared': 'DPP-rbf-wide',
+                'UniformSampler': 'Uniform',
+                'DPPNarrow': 'DPP-rbf-narrow'}
+    return sampler_names
 
 def get_n_max():
     return 55
@@ -25,7 +34,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [2,3,5,10]#[2,3,5,10,15,25,35]
+    ds = [2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 def get_eval_measures():
@@ -109,7 +118,7 @@ def get_one_plot_data(data, measure, d):
 def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':4})
     fig = plt.figure(figsize=(10,10))
-    fig.suptitle("L_2^2 (left two columns) and L_1 (right two columns) from the origin and the center, with n between 1 and 55. shaded is 45th to 55th percentile.\nDPP is using an RBF kernel = exp(-g*||x-y||^2), with g=1/d", 
+    fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center. K between 1 and 55. Shaded is 45th to 55th percentile.\nDPPs are using an RBF kernel: DPP-rbf-narrow has variance 1/10, DPP-rbf-wide has variance d/2.", 
                  fontsize=8)
 
     counter = 0
@@ -140,7 +149,7 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':0, 'UniformSampler':1.0/4}
     #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':-1.0/12, 'RecurrenceSampler':1.0/12, 'UniformSampler':1.0/4}
 
-    cur_samplers = {'SobolSampler':0, 'RecurrenceSampler':0, 'UniformSampler':0, 'DPPnsquared':0, 'DPPClipped':0}
+    cur_samplers = {'SobolSampler':0, 'RecurrenceSampler':0, 'UniformSampler':0, 'DPPnsquared':0, 'DPPNarrow':0}
     
     for sampler in cur_samplers:
         ns = sorted(cur_avgs[sampler].keys())
@@ -154,11 +163,10 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
         #line,_,_ = cur_ax.errorbar(ns_offset, errs, yerr=err_stds, color=get_samplers()[sampler], elinewidth=0.5, linewidth=0.5)
         
         #line.set_label(sampler)
+        
+        sampler_label = get_sampler_names()[sampler]
 
-        if 'DPP' in sampler:
-            sampler_label = 'DPP'
-        else:
-            sampler_label = sampler
+
         
         cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler], label=sampler_label)
         cur_ax.fill_between(ns_offset, err_ls, err_us, alpha=.1, color=get_samplers()[sampler])
@@ -169,8 +177,8 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
     
         
 	
-    measure_names = {'l2':'L2^2_from_origin', 'l2_cntr':'L2^2_from_center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star_discrepancy'}
-    cur_ax.set_title('measure={} d={}'.format(measure_names[measure], d))
+    measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy'}
+    cur_ax.set_title('{}, with d={}'.format(measure_names[measure], d))
 
 
 
@@ -179,6 +187,7 @@ def print_averages(avgs, stds):
         print thing, avgs['DPPnsquared'][22][thing]
     for thing in sorted(avgs['UniformSampler'][22]):
         print thing, avgs['UniformSampler'][22][thing]
+
 
 data = get_data()
 compute_averages(data)

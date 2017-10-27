@@ -203,17 +203,18 @@ def random_rect(samplers):
 
 samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
-	    'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
-	    'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
+	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
+	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
 	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
             'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'}
+            'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
     }
 
 eval_measures = {'l2':get_min_l2_norm, 
-		 'l1':get_min_l1_norm, 
+		 #'l1':get_min_l1_norm, 
 		 'l2_cntr':get_min_l2_norm_center, 
-		 'l1_cntr':get_min_l1_norm_center,
+		 #'l1_cntr':get_min_l1_norm_center,
                  'discrep':get_discrepency}
 
 
@@ -222,12 +223,11 @@ eval_measures = {'l2':get_min_l2_norm,
 
 
 
+# compute L1, L2 dist from origin and center
+def origin_center_data(samplers, eval_measures, ns, ds, sample_num):
+        n_max = ns[-1]
 
-def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 
-	# compute L1, L2 dist from origin and center
-	ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
-	ns = sorted(list(set(ns)))
 	sampler_to_n_err = {}
 	for sampler in samplers:
 		n_to_d_err = {}
@@ -256,12 +256,39 @@ def origin_center_data(samplers, eval_measures, n_max, ds, sample_num):
 	
 					
 
+
+def draw_samples(samplers, ns, ds, sample_num):
+        import pickle
+        for sampler in samplers:
+                print sampler
+                for n in ns:
+                        for d in ds:
+                                X = samplers[sampler]['fn'](n,d)
+                                print X
+                                pickle_loc = 'pickled_data/all_samples/sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
+
+        
+                                pickle.dump(X, open(pickle_loc, 'wb'))
+
+
+
 numpy.random.seed()
-n_max = 55
-ds = [2,3,5,7]
-origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
+n_max = 20
+ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
+ns = sorted(list(set(ns)))
+
+ds = [2,3,4,5]
 
 
+draw_samples(samplers, ns, ds, sys.argv[1])
+#origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
+
+
+
+
+
+
+exit()
 
 
 

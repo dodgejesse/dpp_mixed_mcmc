@@ -17,6 +17,9 @@ def DPPClippedSampler(n,d):
 def DPPNarrow(n,d):
     return DPPSampler(n,d,gamma=8)
 
+def DPPVNarrow(n,d):
+    return DPPSampler(n,d,gamma=20)
+
 def DPPSampler(n, d, clip_type=None,gamma=None):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
