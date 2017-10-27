@@ -273,7 +273,7 @@ def draw_samples(samplers, ns, ds, sample_num):
 
 
 numpy.random.seed()
-n_max = 20
+n_max = 150
 ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
 ns = sorted(list(set(ns)))
 
