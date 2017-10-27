@@ -20,6 +20,16 @@ def DPPNarrow(n,d):
 def DPPVNarrow(n,d):
     return DPPSampler(n,d,gamma=20)
 
+def DPPVVNarrow(n,d):
+    return DPPSampler(n,d,gamma=50)
+
+def DPPVVVNarrow(n,d):
+    return DPPSampler(n,d,gamma=100)
+
+def DPPNNarrow(n,d):
+    g = int(1.0*n/2)
+    return DPPSampler(n,d,gamma=g)
+
 def DPPSampler(n, d, clip_type=None,gamma=None):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
