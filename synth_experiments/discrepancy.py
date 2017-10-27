@@ -206,7 +206,7 @@ samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
 	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
-            'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'}
+            'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
             'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
     }
@@ -264,7 +264,7 @@ def draw_samples(samplers, ns, ds, sample_num):
                 for n in ns:
                         for d in ds:
                                 X = samplers[sampler]['fn'](n,d)
-                                print X
+                                #print X
                                 pickle_loc = 'pickled_data/all_samples/sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
 
         
