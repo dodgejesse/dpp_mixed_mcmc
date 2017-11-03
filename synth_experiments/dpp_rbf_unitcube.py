@@ -8,7 +8,7 @@ sys.path.append(cur_dir_path + '/..')
 import zero_one_cube_unif_sampler
 import rbf_kernel
 import dpp_mcmc_sampler
-import numpy
+import numpy as np
 
 
 def DPPClippedSampler(n,d):
@@ -26,8 +26,13 @@ def DPPVVNarrow(n,d):
 def DPPVVVNarrow(n,d):
     return DPPSampler(n,d,gamma=100)
 
-def DPPNNarrow(n,d):
+# used to be called NNarrow!
+def DPPNovertwoNarrow(n,d):
     g = int(1.0*n/2)
+    return DPPSampler(n,d,gamma=g)
+    
+def DPPNNarrow(n,d):
+    g = n
     return DPPSampler(n,d,gamma=g)
 
 def DPPSampler(n, d, clip_type=None,gamma=None):
@@ -40,16 +45,16 @@ def DPPSampler(n, d, clip_type=None,gamma=None):
     else:
         dist = rbf_kernel.RBF_Clipped_Kernel(clip_type)
 
-        
+    
 
-    num_iters = int(max(1000, numpy.power(n,2) * d))
+    num_iters = int(max(1000, np.power(n,2) * d))
 
-    num_retries = 5
+    num_retries = 1
     # tries five times to get a sample
     for i in range(num_retries):
         try:
             unfeat_B_Y, B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
-            
+            print np.linalg.det(L_Y)
             return B_Y
         except:
             pass

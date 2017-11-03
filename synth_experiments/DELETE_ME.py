@@ -4,12 +4,26 @@ import zero_one_cube_unif_sampler
 import numpy as np
 import dpp_mcmc_sampler
 
-ds = [3]
+ds = [1]
 n_max = 55
 ns = [int(np.exp(x)) for x in np.linspace(0, np.log(n_max), 20)]
 ns = sorted(list(set(ns)))
-
+ns = [25,75,150]
 #import pdb; pdb.set_trace()
+
+
+
+
+
+for d in ds:
+    for n in ns:
+        for g in [1,2,5, 8, 20, 50, 75]:
+            B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)
+            print("success with d={}, n={}, g={}".format(d,n,g))
+            print("")
+
+exit()
+
 
 
 dist = rbf_kernel.RBF_Clipped_Kernel('k')
@@ -17,11 +31,18 @@ dist = rbf_kernel.RBF_Clipped_Kernel('k')
 
 num_influential = {}
 
+
+
+
+
 #for i in [1,10,25]:
 for d in ds:
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
     for n in ns:
         num_iters = int(max(1000, np.power(n,2) * d))
+
+
+        
     
         B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
         print n,d
