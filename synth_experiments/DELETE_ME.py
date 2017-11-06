@@ -17,7 +17,7 @@ ns = [25,75,150]
 
 for d in ds:
     for n in ns:
-        for g in [1,2,5, 8, 20, 50, 75]:
+        for g in [n]:#[1,2,5, 8, 20, 50, 75]:
             B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)
             print("success with d={}, n={}, g={}".format(d,n,g))
             print("")

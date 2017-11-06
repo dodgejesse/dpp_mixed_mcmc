@@ -27,9 +27,10 @@ def get_sampler_names():
                 'UniformSampler': 'Uniform',
                      'DPPNarrow': 'DPP-rbf-g=8',
                      'DPPVNarrow': 'DPP-rbf-g=20',
-                     'DPPVVNarrow': '$k$-DPP-rbf',
+                     'DPPVVNarrow': 'DPP-rbf-g=50',
                      'DPPVVVNarrow': 'DPP-rbf-g=100',
-                     'DPPNNarrow': 'DPP-rbf-g=n'}
+                     'DPPNNarrow': 'DPP-rbf-g=n/2',
+                     'DPPNNNarrow': 'DPP-rbf-g=n'}
     return sampler_names
 
 def get_n_max():
@@ -54,10 +55,14 @@ def get_measure_names():
     return measure_names
 
 
-def get_filename():
-    example_filename = 'nmax={}_nsamplers={}_neval={}_d={}'
-    fname = example_filename.format(get_n_max(), len(get_samplers()), len(get_eval_measures()), ''.join(str(e)+',' for e in get_ds())[:-1])
+def get_filename(ds, measures, samplers):
+    example_filename = 'ds={}_measures={}_samplers={}_nmax={}'
+    fname = example_filename.format(''.join(str(e)+',' for e in ds)[:-1],
+                                    ''.join(str(e)+',' for e in measures)[:-1], 
+                                    ''.join(str(e)+',' for e in samplers)[:-1], 
+                                    get_n_max())
     return fname
+
 
 # WARNING THIS FUNCTION IS DEPRECATED!
 def get_data():
@@ -99,7 +104,7 @@ def load_errors():
 def compute_averages(data):
     avgs = {}
     stds = {}
-    print data.keys()
+    #print data.keys()
     for sampler in get_samplers():
         if sampler not in avgs:
             avgs[sampler] = {}
@@ -117,7 +122,8 @@ def compute_averages(data):
                         avgs[sampler][n][d][measure] = []
                     for sample_num in data[sampler][measure][d][n]:
                         avgs[sampler][n][d][measure].append(data[sampler][measure][d][n][sample_num])
-    
+
+                        
     for sampler in get_samplers():
         for n in get_ns():
             for d in get_ds():
@@ -128,7 +134,7 @@ def compute_averages(data):
                     err_us = sorted(avgs[sampler][n][d][measure])[int(.75*len(avgs[sampler][n][d][measure]))]
                     err_ls = sorted(avgs[sampler][n][d][measure])[int(.25*len(avgs[sampler][n][d][measure]))]
                     cur_std = np.std(avgs[sampler][n][d][measure])
-                    stds[sampler][n][d][measure] = [cur_std, err_ls, err_us]
+                    stds[sampler][n][d][measure] = [cur_std, err_ls, err_us, len(avgs[sampler][n][d][measure])]
 
                     avgs[sampler][n][d][measure] = np.median(avgs[sampler][n][d][measure])                                                                  
                                                                   
@@ -158,14 +164,11 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     measures = ['discrep','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
     ds = [2,3,4]#get_ds()
     #ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
-    
-    
-    
-    #for d in ds:
-    #    for measure in measures:
-    #counter = counter + 1
-    #        cur_ax = fig.add_subplot(len(ds),len(measures),counter)#, adjustable='box', aspect=100)
 
+    samplers = ['SobolSampler','UniformSampler', 'DPPVVNarrow']
+    
+
+    min_samples = []
 
     for d in ds:
         for measure in measures:
@@ -175,7 +178,15 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
             cur_avgs = get_one_plot_data(avgs, measure, d)
             cur_stds = get_one_plot_data(stds, measure, d)
 
-            one_plot(cur_ax, cur_avgs, cur_stds, measure, d)
+            # to get the minimum samples used to make one of the plotted points
+            #print cur_stds
+            cur_min = float('inf')
+            for cur_sampler in cur_stds:
+                cur_min = min(cur_min, min([cur_stds[cur_sampler][i][3] for i in cur_stds[cur_sampler]]))
+            min_samples.append(cur_min)
+            
+
+            one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers)
             #cur_ax.set_ylabel(get_measure_names()[measure])
             if d == 4:
                 cur_ax.set_xlabel('k, between 1 and 150')
@@ -190,20 +201,19 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
 
     plt.tight_layout()
-    out_fname = get_filename() + '_nsamples=something.pdf'
-    plt.savefig('plots/' + out_fname)
-    print("saving to plots/{}".format(out_fname))
+
+
+
+
+    out_fname = 'plots/' + get_filename(ds, measures, samplers) + '.pdf'
+    plt.savefig(out_fname)
+    print("saving to {}".format(out_fname))
+    print("the min samples: ", min_samples)
+
 
 
 # takes cur_avgs which is sampler -> n -> err
-def one_plot(cur_ax, cur_avgs, cur_stds, measure, d):
-
-    #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':0, 'UniformSampler':1.0/4}
-    #cur_samplers = {'SobolSampler':-1.0/4, 'DPPnsquared':-1.0/12, 'RecurrenceSampler':1.0/12, 'UniformSampler':1.0/4}
-
-    #cur_samplers = {'SobolSampler':0, 'RecurrenceSampler':0, 'UniformSampler':0, 'DPPnsquared':0, 'DPPNarrow':0}
-    #samplers = get_samplers()
-    samplers = ['SobolSampler','UniformSampler', 'DPPVVNarrow']
+def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
     cur_samplers = {}
     for sampler in samplers:
         cur_samplers[sampler] = 0

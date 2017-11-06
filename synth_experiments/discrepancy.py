@@ -259,19 +259,20 @@ samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
 	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
-            'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
-            'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
+            #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
+            #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
             'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
             'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
-            'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'}
+            'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
+            'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
     }
 
-eval_measures = {'l2':get_min_l2_norm, 
+#eval_measures = {'l2':get_min_l2_norm, 
 		 #'l1':get_min_l1_norm, 
-		 'l2_cntr':get_min_l2_norm_center, 
+#		 'l2_cntr':get_min_l2_norm_center, 
 		 #'l1_cntr':get_min_l1_norm_center,
-                 'discrep':get_discrepency}
+#                 'discrep':get_discrepency}
 
 #random_rect(samplers)
 
