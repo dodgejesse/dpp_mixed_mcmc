@@ -254,17 +254,17 @@ def draw_samples(samplers, ns, ds, sample_num):
                                 pickle.dump(X, open(pickle_loc, 'wb'))
 
 
-samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
+samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
+	    #'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
             #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
             #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
-            'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
-            'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
+            #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
+            #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
             'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
-            'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
+            'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
     }
 
