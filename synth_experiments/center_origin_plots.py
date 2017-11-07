@@ -12,11 +12,12 @@ def get_samplers():
                 #'SobolSamplerNoNoise': 'c',
                 #'DPPnsquared': 'r',
                 'UniformSampler': 'b',
-                'DPPNarrow': 'm',
+                #'DPPNarrow': 'm',
                 #'DPPVNarrow': 'm',
-                'DPPVVNarrow': 'k'}
-                #'DPPVVVNarrow': 'c',
-                #'DPPNNarrow': 'r'}
+                'DPPVVNarrow': 'k',
+                'DPPVVVNarrow': 'c',
+                'DPPNNarrow': 'r',
+                'DPPNNNarrow': 'c'}
     return samplers
 
 def get_sampler_names():
@@ -43,7 +44,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [2,3,4,5]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1]#,2,3,4,5]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 def get_eval_measures():
@@ -120,6 +121,9 @@ def compute_averages(data):
                 for measure in get_eval_measures():
                     if measure not in avgs[sampler][n][d]:
                         avgs[sampler][n][d][measure] = []
+                    #print data[sampler][measure].keys()
+                    #print sampler, measure, n, d
+
                     for sample_num in data[sampler][measure][d][n]:
                         avgs[sampler][n][d][measure].append(data[sampler][measure][d][n][sample_num])
 
@@ -153,7 +157,7 @@ def get_one_plot_data(data, measure, d):
 
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
-    matplotlib.rcParams.update({'font.size':11})
+    matplotlib.rcParams.update({'font.size':8})
     fig = plt.figure(figsize=(10,10))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
@@ -162,10 +166,10 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
     counter = 0
     measures = ['discrep','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
-    ds = [2,3,4]#get_ds()
+    ds = get_ds()
     #ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
 
-    samplers = ['SobolSampler','UniformSampler', 'DPPVVNarrow']
+    samplers = get_samplers()#['SobolSampler','UniformSampler', 'DPPVVNarrow']
     
 
     min_samples = []
@@ -180,9 +184,12 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
             # to get the minimum samples used to make one of the plotted points
             #print cur_stds
-            cur_min = float('inf')
+            cur_min = [None, None, None, float('inf')]
             for cur_sampler in cur_stds:
-                cur_min = min(cur_min, min([cur_stds[cur_sampler][i][3] for i in cur_stds[cur_sampler]]))
+                
+                cur_cur_min = min([cur_stds[cur_sampler][i][3] for i in cur_stds[cur_sampler]])
+                if cur_min[3] > cur_cur_min:
+                    cur_min = [d, measure, cur_sampler, cur_cur_min]
             min_samples.append(cur_min)
             
 
@@ -231,11 +238,12 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
         #line.set_label(sampler)
         
         sampler_label = get_sampler_names()[sampler]
-
-        del errs[len(errs)-1]
-        del err_ls[len(err_ls)-1]
-        del err_us[len(err_us)-1]
-        del ns_offset[len(ns_offset)-1]
+        
+        
+        #del errs[len(errs)-1]
+        #del err_ls[len(err_ls)-1]
+        #del err_us[len(err_us)-1]
+        #del ns_offset[len(ns_offset)-1]
 
         cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler], label=sampler_label)
         cur_ax.fill_between(ns_offset, err_ls, err_us, alpha=.1, color=get_samplers()[sampler])
@@ -253,10 +261,15 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
 
 
 def print_averages(avgs, stds):
-    for thing in sorted(avgs['DPPnsquared'][22]):
-        print thing, avgs['DPPnsquared'][22][thing]
-    for thing in sorted(avgs['UniformSampler'][22]):
-        print thing, avgs['UniformSampler'][22][thing]
+    print avgs['UniformSampler'][30][1]
+    print avgs['DPPNNarrow'][30][1]
+    #for thing in sorted():
+    #    print thing
+    for thing in avgs:
+        print thing
+    sys.exit()
+
+
 
 data = load_errors()
 #data = get_data()

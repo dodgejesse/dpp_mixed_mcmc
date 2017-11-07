@@ -264,7 +264,7 @@ samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
             #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
             #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
             'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
-            'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
+            #'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
     }
 
@@ -280,9 +280,9 @@ samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 
 numpy.random.seed()
 n_max = 150
-ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
-ns = sorted(list(set(ns)))
-
+#ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
+#ns = sorted(list(set(ns)))
+ns = [40]
 ds = [1]#[2,3,4,5]
 
 
