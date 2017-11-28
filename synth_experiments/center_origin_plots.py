@@ -17,7 +17,8 @@ def get_samplers():
                 'DPPVVNarrow': 'k',
                 'DPPVVVNarrow': 'c',
                 'DPPNNarrow': 'r',
-                'DPPNNNarrow': 'c'}
+                'DPPNsquaredNarrow': 'm'}
+                #'DPPNNNarrow': 'c'}
     return samplers
 
 def get_sampler_names():
@@ -31,7 +32,8 @@ def get_sampler_names():
                      'DPPVVNarrow': 'DPP-rbf-g=50',
                      'DPPVVVNarrow': 'DPP-rbf-g=100',
                      'DPPNNarrow': 'DPP-rbf-g=n/2',
-                     'DPPNNNarrow': 'DPP-rbf-g=n'}
+                     'DPPNNNarrow': 'DPP-rbf-g=n',
+                     'DPPNsquaredNarrow': 'DPP-rbf-g=n*n'}
     return sampler_names
 
 def get_n_max():
@@ -44,7 +46,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [1]#,2,3,4,5]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1]#,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 def get_eval_measures():
@@ -64,25 +66,6 @@ def get_filename(ds, measures, samplers):
                                     get_n_max())
     return fname
 
-
-# WARNING THIS FUNCTION IS DEPRECATED!
-def get_data():
-    print("THIS IS DEPRECATED! DON'T USE!")
-    sys.exit()
-    data = {}
-
-    for sample_counter in range(301):
-        for sample_subcounter in range(1,11):
-            sample_num = '{}_{}'.format(sample_counter, sample_subcounter)
-            fname = get_filename() + '_samplenum=' + sample_num
-            try:
-                #pkl_file = open('pickled_data/origin_center_data/' + fname, 'rb')
-                pkl_file = open('pickled_data/errors_from_samples/' + fname, 'rb')
-
-                data[sample_num] = pickle.load(pkl_file)
-            except:
-                pass
-    return data
 
 def load_errors():
     data = {}
@@ -125,6 +108,15 @@ def compute_averages(data):
                     #print sampler, measure, n, d
 
                     for sample_num in data[sampler][measure][d][n]:
+
+                        # there's some data which was generated with n^3 iters of mcmc, but we want to exclude it.
+                        subsample_num = sample_num[len(sample_num)-1]
+                        bad_sample_nums = ['4','5','6']#['1','2','3']
+                        bad_sample = subsample_num in bad_sample_nums
+                        if "PNNarrow" in sampler and d == 1 and n == 40 and bad_sample:
+                            #import pdb; pdb.set_trace()
+                            continue
+
                         avgs[sampler][n][d][measure].append(data[sampler][measure][d][n][sample_num])
 
                         
@@ -158,7 +150,7 @@ def get_one_plot_data(data, measure, d):
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':8})
-    fig = plt.figure(figsize=(10,10))
+    fig = plt.figure()#figsize=(10,10))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
     #             "DPPs are using an RBF kernel: DPP-rbf-narrow has variance 1/10, DPP-rbf-wide has variance d/2.", 
@@ -191,7 +183,6 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
                 if cur_min[3] > cur_cur_min:
                     cur_min = [d, measure, cur_sampler, cur_cur_min]
             min_samples.append(cur_min)
-            
 
             one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers)
             #cur_ax.set_ylabel(get_measure_names()[measure])
@@ -210,12 +201,14 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     plt.tight_layout()
 
 
+    print("the min samples: ", min_samples)
 
+    #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
     out_fname = 'plots/' + get_filename(ds, measures, samplers) + '.pdf'
     plt.savefig(out_fname)
     print("saving to {}".format(out_fname))
-    print("the min samples: ", min_samples)
+
 
 
 
@@ -261,8 +254,9 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
 
 
 def print_averages(avgs, stds):
-    print avgs['UniformSampler'][30][1]
-    print avgs['DPPNNarrow'][30][1]
+    print avgs['UniformSampler'][40][1]
+    print avgs['DPPNNarrow'][40][1]
+    print stds['DPPNNarrow'][40][1]
     #for thing in sorted():
     #    print thing
     for thing in avgs:

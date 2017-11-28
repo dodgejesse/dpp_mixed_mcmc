@@ -284,7 +284,7 @@ n_max = 150
 ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
 ns = sorted(list(set(ns)))
 #ns = [40]
-ds = [1]#[2,3,4,5]
+ds = [2,3,4,5]
 
 
 draw_samples(samplers, ns, ds, sys.argv[1])
