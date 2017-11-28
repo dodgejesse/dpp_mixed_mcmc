@@ -2,9 +2,10 @@ import sklearn.metrics
 import numpy as np
 
 class RBF_Kernel():
-    def __init__(self, gamma = None):
+    # gamma is the bandwidth parameter, alpha is the scaling parameter
+    def __init__(self, gamma = None, alpha = None):
         self.g = gamma
-
+        self.alpha = alpha
 
     def __call__(self,B,B_prime,g=None):
         #g=1.0/(B.shape[1]*B.shape[0])
@@ -13,6 +14,14 @@ class RBF_Kernel():
             L_Y = sklearn.metrics.pairwise.rbf_kernel(B,B_prime,gamma=self.g)
         else:
             L_Y = sklearn.metrics.pairwise.rbf_kernel(B,B_prime,gamma=g)
+
+
+
+        #for i in range(15):
+        #    print np.linalg.slogdet(L_Y*(10**i)), np.linalg.det(L_Y*(10**i)), 10**i
+        #import pdb; pdb.set_trace()
+        #if not self.alpha is None:
+        #    L_Y = self.alpha * L_Y
         return L_Y
 
 

@@ -92,6 +92,12 @@ def print_unif_samps_dets(L, k, num_samps, rng):
     print('avg: {}'.format(np.average(dets)))
      
 
+# returns alpha s.t. logdet(alpha*L_Y) > -500
+def get_kernel_multiplier(L_Y):
+    cur_alpha = 1
+    np.linalg.slogdet(L_Y)
+    
+
 # returns a sample from a DPP defined over a mixed discrete and contiuous space
 # requires unif_sampler, which is an object initialized with a dimension d,
 #   that contains a function draw_sample() which returns a 1 dim feature vector
@@ -129,44 +135,21 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
         if i % 10000 == 0 and not i == 0:
             print "iter {} out of {}, after {} seconds".format(i, max_iter, 
                                                                time.time() - start_time)
+        
         u_index = rng.choice(range(len(L_Y)))
         v_unfeat_vect, v_feat_vect = unif_sampler(1)
         
+        det_ratio, B_Y_prime, L_Y_prime = get_det_ratio(u_index, v_unfeat_vect, v_feat_vect, L_Y, B_Y, use_log_dets, dist_comp)
         
-        B_Y_minus_u = np.delete(B_Y, u_index,0)
+        det_ratio_s, B_Y_prime, L_Y_prime = get_simplified_det_ratio(B_Y, L_Y, u_index, v_feat_vect, dist_comp)
+
+        print det_ratio
+        print det_ratio_s
+        print('')
         
-        
-        # L_Y_prime is L_Y minus u plus v
-        B_Y_prime = np.vstack([B_Y_minus_u, v_feat_vect])
-        
-        L_Y_prime = dist_comp(B_Y_prime, B_Y_prime)
-        
-        if not use_log_dets:
-            numerator = np.linalg.det(L_Y_prime)
-            if numerator < 0:
-                numerator = 0
-                proposal_with_neg_det += 1
-            denom = np.linalg.det(L_Y)
-            det_ratio = numerator/denom
-        else:
-            # using det(L_Y_prime) / det(L_Y) = 
-            # exp(log(det(L_Y_prime)) - log(det(L_Y)))
-            (first_sign, first_logdet) = np.linalg.slogdet(L_Y_prime)
-            (second_sign, second_logdet) = np.linalg.slogdet(L_Y)
-            det_ratio = np.exp(first_logdet - second_logdet)
-            # diagnostic things
-            if first_sign < 0:
-                #print("Problems in using log det for ratio!")
-                #print("first sign: {}, logdet: {}, k: {}, d: {}".format(
-                #        first_sign, first_logdet, k, len(B_Y[0])))
-                proposal_with_neg_det += 1
-                det_ratio = 0
-            if second_sign < 0:
-                print("Problems in using log det for ratio!")
-                print("second sign: {}, logdet: {}, k: {}, d: {}".format(
-                        second_sign, second_logdet,k, len(B_Y[0])))
-                raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
-                       
+        if det_ratio < 0:
+            proposal_with_neg_det += 1
+
         # taken from alireza's paper
         p = .5 * min(1, det_ratio)
         
@@ -226,6 +209,76 @@ def sample_initial(unif_sampler,k,dist_comp, use_log_dets):
             print(out_string.format(resample_limit,tolerance, best_found_cur_det))
             raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
     return unfeat_B_Y, B_Y, L_Y
+
+
+def get_simplified_det_ratio(B_Y, L_Y, u_index, v_feat_vect, dist_comp):
+    import pdb; pdb.set_trace()
+
+    B_Y_minus_u = np.delete(B_Y, u_index, 0)
+
+    L_Y_minus_u = np.delete(np.delete(L_Y, u_index, 0), u_index, 1)
+    L_Y_minus_u_inv = np.linalg.inv(L_Y_minus_u)
+    
+    c_v = dist_comp(v_feat_vect, v_feat_vect)
+    c_u = L_Y[u_index,u_index]
+    
+    b_v = dist_comp(v_feat_vect, B_Y_minus_u)
+    b_u = np.delete(L_Y[u_index],u_index, 0)
+
+
+    numer = c_v - np.dot(np.dot(b_v,L_Y_minus_u_inv),np.transpose(b_v))
+    denom = c_u - np.dot(np.dot(b_u,L_Y_minus_u_inv),np.transpose(b_u))
+
+
+
+    # to return:
+    B_Y_prime = np.vstack([B_Y_minus_u, v_feat_vect])
+    L_Y_prime = dist_comp(B_Y_prime, B_Y_prime)
+    if numer < 0:
+        det_ratio = -1
+    else:
+        det_ratio = (numer/denom)[0][0]
+    if denom < 0:
+        print("Problems in using log det for ratio!")
+        print("second sign: {}, logdet: {}, k: {}, d: {}".format(
+                second_sign, second_logdet,k, len(B_Y[0])))
+        raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
+    
+    return det_ratio, B_Y_prime, L_Y_prime
+
+def get_det_ratio(u_index, v_unfeat_vect, v_feat_vect, L_Y, B_Y, use_log_dets, dist_comp):
+    B_Y_minus_u = np.delete(B_Y, u_index,0)
+    
+    
+    # L_Y_prime is L_Y minus u plus v
+    B_Y_prime = np.vstack([B_Y_minus_u, v_feat_vect])
+        
+    L_Y_prime = dist_comp(B_Y_prime, B_Y_prime)
+    
+    if not use_log_dets:
+        numerator = np.linalg.det(L_Y_prime)
+        if numerator < 0:
+            numerator = -1
+        denom = np.linalg.det(L_Y)
+        det_ratio = numerator/denom
+    else:
+        # using det(L_Y_prime) / det(L_Y) = 
+        # exp(log(det(L_Y_prime)) - log(det(L_Y)))
+        (first_sign, first_logdet) = np.linalg.slogdet(L_Y_prime)
+        (second_sign, second_logdet) = np.linalg.slogdet(L_Y)
+        det_ratio = np.exp(first_logdet - second_logdet)
+        # diagnostic things
+        if first_sign < 0:
+            #print("Problems in using log det for ratio!")
+            #print("first sign: {}, logdet: {}, k: {}, d: {}".format(
+            #        first_sign, first_logdet, k, len(B_Y[0])))
+            det_ratio = -1
+        if second_sign < 0:
+            print("Problems in using log det for ratio!")
+            print("second sign: {}, logdet: {}, k: {}, d: {}".format(
+                    second_sign, second_logdet,k, len(B_Y[0])))
+            raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
+    return det_ratio, B_Y_prime, L_Y_prime
 
 
 

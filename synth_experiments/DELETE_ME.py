@@ -8,16 +8,15 @@ ds = [1]
 n_max = 55
 ns = [int(np.exp(x)) for x in np.linspace(0, np.log(n_max), 20)]
 ns = sorted(list(set(ns)))
-ns = [25,75,150]
+#ns = [25,75,150]
+ns = [50]
 #import pdb; pdb.set_trace()
-
-
-
+# alpha scales the kernel
 
 
 for d in ds:
     for n in ns:
-        for g in [n*n]:#[1,2,5, 8, 20, 50, 75]:
+        for g in [10]:#[1,2,5, 8, 20, 50, 75]:
             B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)
             print("success with d={}, n={}, g={}".format(d,n,g))
             print("")

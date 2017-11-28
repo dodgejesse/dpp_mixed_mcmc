@@ -38,13 +38,13 @@ def DPPNsquaredNarrow(n,d):
     g = n*n
     return DPPSampler(n,d,gamma=g)
 
-def DPPSampler(n, d, clip_type=None,gamma=None):
+def DPPSampler(n, d, clip_type=None,gamma=None, alpha=None):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
     
     
     if clip_type is None:
-        dist = rbf_kernel.RBF_Kernel(gamma)
+        dist = rbf_kernel.RBF_Kernel(gamma, alpha)
     else:
         dist = rbf_kernel.RBF_Clipped_Kernel(clip_type)
 
@@ -55,12 +55,12 @@ def DPPSampler(n, d, clip_type=None,gamma=None):
     num_retries = 1
     # tries five times to get a sample
     for i in range(num_retries):
-        try:
-            unfeat_B_Y, B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
-            print np.linalg.slogdet(L_Y)
-            return B_Y
-        except:
-            pass
+        #try:
+        unfeat_B_Y, B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
+        print np.linalg.slogdet(L_Y)
+        return B_Y
+        #except:
+        #    pass
 
 
     print("FAILED!!!")
