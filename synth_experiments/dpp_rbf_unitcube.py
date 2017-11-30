@@ -50,7 +50,7 @@ def DPPSampler(n, d, clip_type=None,gamma=None, alpha=None):
 
     
 
-    num_iters = int(max(1000, np.power(n,3) * d))
+    num_iters = int(max(1000, np.power(n,2) * d))
 
     #num_retries = 1
 

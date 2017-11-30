@@ -259,7 +259,7 @@ samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
 	    #'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
-            #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
+            'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
             #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
             #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
             'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
