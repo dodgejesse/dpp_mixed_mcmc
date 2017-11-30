@@ -15,9 +15,9 @@ def get_samplers():
                 #'DPPNarrow': 'm',
                 #'DPPVNarrow': 'm',
                 'DPPVVNarrow': 'k',
-                'DPPVVVNarrow': 'c',
-                'DPPNNarrow': 'r',
-                'DPPNsquaredNarrow': 'm'}
+                'DPPVVVNarrow': 'c'}
+                #'DPPNNarrow': 'r',
+                #'DPPNsquaredNarrow': 'm'}
                 #'DPPNNNarrow': 'c'}
     return samplers
 
@@ -46,7 +46,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [1]#,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 def get_eval_measures():
@@ -150,7 +150,7 @@ def get_one_plot_data(data, measure, d):
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':8})
-    fig = plt.figure()#figsize=(10,10))
+    fig = plt.figure(figsize=(10,10))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
     #             "DPPs are using an RBF kernel: DPP-rbf-narrow has variance 1/10, DPP-rbf-wide has variance d/2.", 
@@ -205,7 +205,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/' + get_filename(ds, measures, samplers) + '.pdf'
+    out_fname = 'plots/approx_inv/' + get_filename(ds, measures, samplers) + '.pdf'
     plt.savefig(out_fname)
     print("saving to {}".format(out_fname))
 

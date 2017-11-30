@@ -28,9 +28,9 @@ def remove_errors(samplers, eval_measures, ns, ds):
                                 for n in ns:
                                         if n not in cur_evals[d]:
                                                 continue
-
+                                        num_del = len(cur_evals[d][n])
                                         del cur_evals[d][n]
-                                        print('deleted {}, eval={}, d={}, n={}'.format(sampler, eval_measure, d, n))
+                                        print('deleted {}, eval={}, d={}, n={}. num_deleted={}'.format(sampler, eval_measure, d, n, num_del))
                                 if len(eval_measure[d]) == 0:
                                         del cur_evals[d]
                                         print('deleted {}, eval={}, d={}'.format(sampler, eval_measure, d))
@@ -57,7 +57,7 @@ samplers = {#'SobolSampler',
             #'DPPNarrow',
             #'DPPVNarrow',
             'DPPVVNarrow',
-            #'DPPVVVNarrow',
+            'DPPVVVNarrow',
             #'DPPNNarrow',
             #'DPPNNNarrow'
             #'DPPNsquaredNarrow'

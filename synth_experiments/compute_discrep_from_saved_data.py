@@ -168,7 +168,7 @@ samplers = {#'SobolSampler',
             #'DPPNarrow',
             #'DPPVNarrow',
             'DPPVVNarrow',
-            #'DPPVVVNarrow',
+            'DPPVVVNarrow',
             #'DPPNNarrow',
             #'DPPNNNarrow'
             #'DPPNsquaredNarrow'

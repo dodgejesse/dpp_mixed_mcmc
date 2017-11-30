@@ -238,17 +238,21 @@ def compute_approx_inv(L_Y):
     #import pdb; pdb.set_trace()
     vals, vects = np.linalg.eigh(L_Y)
     eigvals_sum = sum(vals)
-    epsilon = 0.01 * eigvals_sum
+    epsilon = 0.0001 * eigvals_sum
 
     vects_q = vects[:,vals > epsilon]
     vals_q = vals[vals > epsilon]
 
     cap_lambda = np.identity(len(vals_q)) * vals_q
 
+    
+
     #DEBUG
     #print('full set: ', vals)
     #print('reduced set: ', vals_q)
-    print('num eigenvals removed: {}'.format(len(vals) - len(vals_q)))
+    #print('num eigenvals removed: {}'.format(len(vals) - len(vals_q)))
+    #print(np.linalg.cond(cap_lambda), np.linalg.cond(L_Y))
+    
 
     return cap_lambda, vects_q
 
