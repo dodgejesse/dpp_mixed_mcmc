@@ -120,6 +120,9 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
 
     unfeat_B_Y, B_Y, L_Y = sample_initial(unif_sampler, k, dist_comp, use_log_dets)
 
+    if k == 1:
+        return unfeat_B_Y, B_Y, L_Y, time.time() - start_time
+
     if print_debug:
         numerator_counter = 0
         denom_counter = 0
