@@ -265,8 +265,9 @@ samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
             #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
             #'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
             #'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
-            'DPPNsquaredNarrow': {'fn': dpp_rbf_unitcube.DPPNsquaredNarrow, 'color': 'm'}
+            #'DPPNsquaredNarrow': {'fn': dpp_rbf_unitcube.DPPNsquaredNarrow, 'color': 'm'}
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
+        'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
     }
 
 #eval_measures = {'l2':get_min_l2_norm, 
@@ -283,8 +284,8 @@ numpy.random.seed()
 n_max = 150
 ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
 ns = sorted(list(set(ns)))
-#ns = [40]
-ds = [2,3,4,5]
+#ns = [115]
+ds = [1]#,2,3,4,5]
 
 
 draw_samples(samplers, ns, ds, sys.argv[1])

@@ -139,28 +139,34 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
         u_index = rng.choice(range(len(L_Y)))
         v_unfeat_vect, v_feat_vect = unif_sampler(1)
         
-        det_ratio, B_Y_prime, L_Y_prime = get_det_ratio(u_index, v_unfeat_vect, v_feat_vect, L_Y, B_Y, use_log_dets, dist_comp)
+        #det_ratio, B_Y_prime, L_Y_prime = get_det_ratio(u_index, v_unfeat_vect, v_feat_vect, L_Y, B_Y, use_log_dets, dist_comp)
         
-        det_ratio_s, B_Y_prime, L_Y_prime = get_simplified_det_ratio(B_Y, L_Y, u_index, v_feat_vect, dist_comp)
+        det_ratio_s  = get_simplified_det_ratio(B_Y, L_Y, u_index, v_feat_vect, dist_comp)
 
-        print det_ratio
-        print det_ratio_s
-        print('')
+
+        #import pdb; pdb.set_trace()
         
-        if det_ratio < 0:
+        if det_ratio_s < 0:
             proposal_with_neg_det += 1
 
         # taken from alireza's paper
-        p = .5 * min(1, det_ratio)
+        p = .5 * min(1, det_ratio_s)
         
 
         if rng.uniform() <= p:
             steps_taken += 1
+
+            B_Y_minus_u = np.delete(B_Y, u_index, 0)
+            L_Y_minus_u = np.delete(np.delete(L_Y, u_index, 0), u_index, 1)
+            B_Y_prime = np.vstack([B_Y_minus_u, v_feat_vect])
+            L_Y_prime = dist_comp(B_Y_prime, B_Y_prime)
+
             del unfeat_B_Y[u_index]
             unfeat_B_Y.append(v_unfeat_vect)
             B_Y = B_Y_prime
             L_Y = L_Y_prime
-        
+
+
         
         
         #c_v = dist_comp(cur_out, cur_out)
@@ -210,41 +216,71 @@ def sample_initial(unif_sampler,k,dist_comp, use_log_dets):
             raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
     return unfeat_B_Y, B_Y, L_Y
 
+# c - b^T V_q Lambda_q^-1 V_q^T b
+def approx_inv_mult(c, b, cap_lambda, vects_q):
+    np.set_printoptions(suppress=True)
+
+    first = np.dot(b, vects_q)
+    second = np.dot(first, np.linalg.inv(cap_lambda))
+    third = np.dot(second, np.transpose(vects_q))
+    fourth = np.dot(third, np.transpose(b))
+
+    return c - fourth
+
+
+# takes a symmetric (Hermitian) matrix L_Y
+# returns an approximation of the inverse which only depends on the eigenvalues > epsilon and
+# associated eigenvvectors
+def compute_approx_inv(L_Y):
+    #import pdb; pdb.set_trace()
+    vals, vects = np.linalg.eigh(L_Y)
+    eigvals_sum = sum(vals)
+    epsilon = 0.05 * eigvals_sum
+
+    vects_q = vects[:,vals > epsilon]
+    vals_q = vals[vals > epsilon]
+
+    cap_lambda = np.identity(len(vals_q)) * vals_q
+
+    #DEBUG
+    #print('full set: ', vals)
+    #print('reduced set: ', vals_q)
+    #print('num eigenvals removed: {}'.format(len(vals) - len(vals_q)))
+
+    return cap_lambda, vects_q
+
 
 def get_simplified_det_ratio(B_Y, L_Y, u_index, v_feat_vect, dist_comp):
-    import pdb; pdb.set_trace()
-
     B_Y_minus_u = np.delete(B_Y, u_index, 0)
 
     L_Y_minus_u = np.delete(np.delete(L_Y, u_index, 0), u_index, 1)
-    L_Y_minus_u_inv = np.linalg.inv(L_Y_minus_u)
-    
+
     c_v = dist_comp(v_feat_vect, v_feat_vect)
     c_u = L_Y[u_index,u_index]
     
     b_v = dist_comp(v_feat_vect, B_Y_minus_u)
     b_u = np.delete(L_Y[u_index],u_index, 0)
+    
+    cap_lambda, vects_q = compute_approx_inv(L_Y_minus_u)
 
+    numer_approx = approx_inv_mult(c_v, b_v, cap_lambda, vects_q)
+    denom_approx = approx_inv_mult(c_u, b_u, cap_lambda, vects_q)
 
-    numer = c_v - np.dot(np.dot(b_v,L_Y_minus_u_inv),np.transpose(b_v))
-    denom = c_u - np.dot(np.dot(b_u,L_Y_minus_u_inv),np.transpose(b_u))
-
+    #L_Y_minus_u_inv = np.linalg.inv(L_Y_minus_u)
+    #numer = c_v - np.dot(np.dot(b_v,L_Y_minus_u_inv),np.transpose(b_v))
+    #denom = c_u - np.dot(np.dot(b_u,L_Y_minus_u_inv),np.transpose(b_u))
 
 
     # to return:
-    B_Y_prime = np.vstack([B_Y_minus_u, v_feat_vect])
-    L_Y_prime = dist_comp(B_Y_prime, B_Y_prime)
-    if numer < 0:
+    if numer_approx < 0:
         det_ratio = -1
     else:
-        det_ratio = (numer/denom)[0][0]
-    if denom < 0:
-        print("Problems in using log det for ratio!")
-        print("second sign: {}, logdet: {}, k: {}, d: {}".format(
-                second_sign, second_logdet,k, len(B_Y[0])))
+        det_ratio = (numer_approx/denom_approx)[0][0]
+    if denom_approx < 0:
+        print("Problems in using approximation for matrix inverse!")
         raise ZeroDivisionError("The matrix L is likely low rank => det(L_Y) = 0.")
     
-    return det_ratio, B_Y_prime, L_Y_prime
+    return det_ratio
 
 def get_det_ratio(u_index, v_unfeat_vect, v_feat_vect, L_Y, B_Y, use_log_dets, dist_comp):
     B_Y_minus_u = np.delete(B_Y, u_index,0)
