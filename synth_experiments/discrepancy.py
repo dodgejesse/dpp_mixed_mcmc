@@ -262,7 +262,7 @@ samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
             #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
             #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
             #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
-            #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
+            'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
             #'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
             #'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
             #'DPPNsquaredNarrow': {'fn': dpp_rbf_unitcube.DPPNsquaredNarrow, 'color': 'm'}
