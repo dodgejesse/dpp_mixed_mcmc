@@ -7,7 +7,7 @@ fi
 
 
 
-NUM_INST=50
+NUM_INST=5
 SPOT_REQUEST_ID=`aws ec2 request-spot-instances --spot-price "2.69" --instance-count $NUM_INST --type "one-time" --launch-specification file://specification.json | grep SpotInstanceRequestId | awk '{print $2}' | sed s/,// | sed s/\"// | sed s/\"//`
 
 
@@ -95,14 +95,14 @@ for ONE_SPOT_IP in ${SPOT_IP}; do
     echo "About to try $ONE_SPOT_IP, with COUNTER=${COUNTER}"
 
     COMMANDS=""
-    for i in `seq 1 3`; do
-	COMMANDS="$COMMANDS python discrepancy.py ${COUNTER}_${i};"
+    for i in `seq 1`; do
+	#COMMANDS="$COMMANDS python discrepancy.py ${COUNTER}_${i};"
+	COMMANDS="$COMMANDS python sequentially_sample_post_var.py ${COUNTER}_${i};"
     done
 
-    #COMMANDS="python discrepancy.py ${COUNTER}"
-
-
-    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate arkcat; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; mkdir /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/all_samples; git fetch; git reset --hard origin/master; $COMMANDS bash aws/save_data_and_terminate_samples.sh ${CUR_IP}" &
+    #SAMPLE_STORAGE_LOC="/home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/all_samples"
+    SAMPLE_STORAGE_LOC="/home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/d=1"
+    ssh -i "/home/ec2-user/projects/ARKcat/aws/jesse-key-pair-uswest2.pem" -oStrictHostKeyChecking=no ec2-user@ec2-${ONE_SPOT_IP}.us-west-2.compute.amazonaws.com "source activate arkcat; cd /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments; mkdir ${SAMPLE_STORAGE_LOC}; git fetch; git reset --hard origin/master; $COMMANDS bash aws/save_data_and_terminate_samples.sh ${CUR_IP}" &
     let COUNTER+=1
 done
 

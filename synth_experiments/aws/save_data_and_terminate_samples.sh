@@ -2,6 +2,7 @@
 
 CUR_IP=${1}
 SAVE_LOC=/home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/all_samples
+SAVE_LOC=/home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/d=1
 
 scp -i /home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/aws/jesse-key-pair-uswest2.pem -oStrictHostKeyChecking=no $SAVE_LOC/* ec2-user@${CUR_IP}:${SAVE_LOC}
 
