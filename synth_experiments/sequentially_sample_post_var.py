@@ -74,12 +74,14 @@ def main():
     max_grid_size = 100001
     # std dev, for RBF kernel
     # sigma=0.001 was good enough for k=1000
-    sigma = .001
+    sigma = .003
     X = np.linspace(0,1,num=max_grid_size)
     
     X = np.array([np.array([xi]) for xi in X])
     
     new_point = np.random.randint(0,max_grid_size)
+    #DEBUGGING
+    #new_point = np.array([np.random.choice(max_grid_size, 7, replace=False)]).T
     X_train = X[np.array([new_point])]
     X_test = np.delete(X, new_point,axis=0)    
     

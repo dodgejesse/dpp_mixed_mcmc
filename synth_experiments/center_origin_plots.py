@@ -14,11 +14,12 @@ def get_samplers():
                 'UniformSampler': 'b',
                 #'DPPNarrow': 'm',
                 #'DPPVNarrow': 'm',
-                'DPPVVNarrow': 'k',
-                'DPPVVVNarrow': 'c'}
+                #'DPPVVNarrow': 'k',}
+                #'DPPVVVNarrow': 'c'}
                 #'DPPNNarrow': 'r',
                 #'DPPNsquaredNarrow': 'm'}
                 #'DPPNNNarrow': 'c'}
+                'DPPSeqPostSigma001': 'c'}
     return samplers
 
 def get_sampler_names():
@@ -33,11 +34,12 @@ def get_sampler_names():
                      'DPPVVVNarrow': 'DPP-rbf-g=100',
                      'DPPNNarrow': 'DPP-rbf-g=n/2',
                      'DPPNNNarrow': 'DPP-rbf-g=n',
-                     'DPPNsquaredNarrow': 'DPP-rbf-g=n*n'}
+                     'DPPNsquaredNarrow': 'DPP-rbf-g=n*n',
+                     'DPPSeqPostSigma001': 'DPP-rbf-sigma=0.001'}
     return sampler_names
 
 def get_n_max():
-    return 150
+    return 750
 
 def get_ns():
     n_max = get_n_max()
@@ -46,7 +48,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 def get_eval_measures():
@@ -205,7 +207,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/approx_inv/' + get_filename(ds, measures, samplers) + '.pdf'
+    out_fname = 'plots/seq_post/' + get_filename(ds, measures, samplers) + '.pdf'
     plt.savefig(out_fname)
     print("saving to {}".format(out_fname))
 
