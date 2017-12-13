@@ -65,7 +65,7 @@ def initialize_kernel_matrices(X_train, X_test, sigma):
     return train_kernel_mtx, test_to_train_kernel_mtx
 
 def pickle_sample(X_train, sigma, n, d):
-    pickle_loc = 'pickled_data/d=1/sampler=DPPSeqPostSigma{}_n={}_d={}_samplenum={}'.format(str(sigma)[2:], n, d, sys.argv[1])
+    pickle_loc = 'pickled_data/dim=1/sampler=DPPSeqPostSigma{}_n={}_d={}_samplenum={}'.format(str(sigma)[2:], n, d, sys.argv[1])
     pickle.dump(X_train, open(pickle_loc, 'wb'))
 
 def main():
