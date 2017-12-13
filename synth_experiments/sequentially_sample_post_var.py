@@ -64,8 +64,8 @@ def initialize_kernel_matrices(X_train, X_test, sigma):
     
     return train_kernel_mtx, test_to_train_kernel_mtx
 
-def pickle_sample(X_train):
-    pickle_loc = 'pickled_data/d=1/sampler=DPPSeqPostSigma001_n=100_samplenum={}'.format(sys.argv[1])
+def pickle_sample(X_train, sigma, n, d):
+    pickle_loc = 'pickled_data/d=1/sampler=DPPSeqPostSigma{}_n={}_d={}_samplenum={}'.format(str(sigma)[2:], n, d, sys.argv[1])
     pickle.dump(X_train, open(pickle_loc, 'wb'))
 
 def main():
@@ -73,7 +73,7 @@ def main():
     d = 1
     max_grid_size = 100001
     # std dev, for RBF kernel
-    sigma = .001
+    sigma = .01
     X = np.linspace(0,1,num=max_grid_size)
     
     X = np.array([np.array([xi]) for xi in X])
@@ -82,7 +82,7 @@ def main():
     X_train = X[np.array([new_point])]
     X_test = np.delete(X, new_point,axis=0)    
     
-    k = 100
+    k = 10
     
     for i in range(k-1):
         start_iter_time = time.time()
@@ -108,7 +108,7 @@ def main():
     
     
     X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
-    pickle_sample(X_train)
+    pickle_sample(X_train, sigma, k, d)
     
         
 if __name__ == "__main__":
