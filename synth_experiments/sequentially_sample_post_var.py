@@ -73,7 +73,8 @@ def main():
     d = 1
     max_grid_size = 100001
     # std dev, for RBF kernel
-    sigma = .01
+    # sigma=0.001 was good enough for k=1000
+    sigma = .001
     X = np.linspace(0,1,num=max_grid_size)
     
     X = np.array([np.array([xi]) for xi in X])
@@ -82,7 +83,7 @@ def main():
     X_train = X[np.array([new_point])]
     X_test = np.delete(X, new_point,axis=0)    
     
-    k = 10
+    k = 750
     
     for i in range(k-1):
         start_iter_time = time.time()
