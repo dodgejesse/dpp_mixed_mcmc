@@ -90,8 +90,8 @@ def get_out_name(sampler, eval_measure):
 def get_in_name(sampler, n, d):
         if 'SeqPostSigma' in sampler:
                 return './pickled_data/dim={}/sampler={}_n=*_d={}_samplenum=*'.format(d, sampler, d)
-                
-        return './pickled_data/all_samples/sampler={}_n={}_d={}_samplenum=*'.format(sampler, n,d)
+        else:
+                return './pickled_data/dim={}/sampler={}_n={}_d={}_samplenum=*'.format(d, sampler, n,d)
 
 
 def find_actual_samples(ns, sampler, n_or_d):
@@ -136,7 +136,7 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                         if 'SeqPost' in sampler:
                                 d = 1
                                 in_file_names = glob.glob(get_in_name(sampler, 1, d))
-                                print len(in_file_names)
+                                #print len(in_file_names)
                                 counter = 0
                                 for in_file_name in in_file_names:
                                         sample_num = in_file_name.split("=")[-1]
@@ -201,7 +201,7 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
 
 
 
-samplers = {'SobolSampler',
+samplers = {#'SobolSampler',
 	    #'RecurrenceSampler',
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared',#: {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
@@ -215,6 +215,8 @@ samplers = {'SobolSampler',
             #'DPPNsquaredNarrow'
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
             #'DPPSeqPostSigma001'
+            #'DPPSeqPostSigma003'
+            'SobolSamplerHighD'
     }
 
 eval_measures = {'l2':get_min_l2_norm, 
@@ -227,7 +229,7 @@ ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
 ns = sorted(list(set(ns)))
 #ns = range(n_max+1)
 
-ds = [1]#,2,3,4,5]
+ds = [100,500]#,2,3,4,5]
 
 
 #compute_errors(samplers, eval_measures, ns, ds)

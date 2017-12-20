@@ -11,7 +11,7 @@ def get_samplers():
                 #'RecurrenceSampler': 'k',
                 #'SobolSamplerNoNoise': 'c',
                 #'DPPnsquared': 'r',
-                'UniformSampler': 'b',
+                'UniformSampler': 'b'}
                 #'DPPNarrow': 'm',
                 #'DPPVNarrow': 'm',
                 #'DPPVVNarrow': 'k',}
@@ -19,7 +19,8 @@ def get_samplers():
                 #'DPPNNarrow': 'r',
                 #'DPPNsquaredNarrow': 'm'}
                 #'DPPNNNarrow': 'c'}
-                'DPPSeqPostSigma001': 'c'}
+                #'DPPSeqPostSigma001': 'c',
+                #'DPPSeqPostSigma003': 'm'}
     return samplers
 
 def get_sampler_names():
@@ -35,7 +36,8 @@ def get_sampler_names():
                      'DPPNNarrow': 'DPP-rbf-g=n/2',
                      'DPPNNNarrow': 'DPP-rbf-g=n',
                      'DPPNsquaredNarrow': 'DPP-rbf-g=n*n',
-                     'DPPSeqPostSigma001': 'DPP-rbf-sigma=0.001'}
+                     'DPPSeqPostSigma001': 'DPP-rbf-sigma=0.001',
+                     'DPPSeqPostSigma003': 'DPP-rbf-sigma=0.003'}
     return sampler_names
 
 def get_n_max():
@@ -48,7 +50,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [1]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [40]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 def get_eval_measures():
@@ -152,7 +154,7 @@ def get_one_plot_data(data, measure, d):
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':8})
-    fig = plt.figure(figsize=(10,10))
+    fig = plt.figure(figsize=(9,3))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
     #             "DPPs are using an RBF kernel: DPP-rbf-narrow has variance 1/10, DPP-rbf-wide has variance d/2.", 
@@ -171,8 +173,8 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     for d in ds:
         for measure in measures:
             counter = counter + 1
-            cur_ax = fig.add_subplot(len(ds),len(measures),counter)#, adjustable='box', aspect=100)
-
+            cur_ax = fig.add_subplot(len(ds),len(measures),counter, adjustable='box')#adjustable='box', aspect='equal')#adjustable='box', aspect=1)#, adjustable='box', aspect=100)
+            #cur_ax.set_aspect('equal', 'box')
             cur_avgs = get_one_plot_data(avgs, measure, d)
             cur_stds = get_one_plot_data(stds, measure, d)
 
@@ -198,6 +200,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
                 cur_ax.set_title('distance from center')
             if measure == 'discrep':
                 cur_ax.set_ylabel('d={}'.format(d))
+
 
 
     plt.tight_layout()

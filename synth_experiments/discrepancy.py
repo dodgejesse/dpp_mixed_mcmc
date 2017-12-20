@@ -1,4 +1,5 @@
 import sys
+import os
 import numpy
 import matplotlib
 import matplotlib.pyplot as plt
@@ -23,39 +24,39 @@ def get_discrepency(X):
 		worse_value = max(worse_value, abs(p-p_hat-1./len(X)))
 	return worse_value
 
-def get_min_norm(X, order):
-	return min(numpy.linalg.norm(X, ord=order, axis=1))
-
-def get_min_l2_norm(X):
-	#smallest_value = float('inf')
-	#for x in X:
-	#	tmp = numpy.dot(x, x)
-	#	smallest_value = min(smallest_value, tmp)
-	#return smallest_value
-	return get_min_norm(X, 2)
-
-def get_min_l1_norm(X):
-	#smallest_value = float('inf')
-	#for x in X:
-#		tmp = numpy.dot(x, numpy.sign(x))
-#		smallest_value = min(smallest_value, tmp)0
-#	return smallest_value
-
-	return get_min_norm(X, 1)
-
-def get_min_l2_norm_center(X):
-	center = numpy.ones(X.shape)*.5
-	return get_min_norm(X-center, 2)
-
-def get_min_l1_norm_center(X):
-	center = numpy.ones(X.shape)*.5
-	return get_min_norm(X-center, 1)
-
-
-
 # adds uniform noise in [0,1], then for those results above 1 it subtracts 1
 def SobolSampler(n, d):
 	X = sobol.i4_sobol_generate(d, n)
+        print X
+        return
+        sys.exit()
+	U = numpy.random.rand(d)
+	X += U
+	X -= numpy.floor(X)
+	return X
+
+# this method is to try and get sobol in D > 40
+# adds uniform noise in [0,1], then for those results above 1 it subtracts 1
+def SobolSamplerHighD(n, d):
+        assert d in [5, 50, 100, 500]
+        assert n < 1025
+        
+        with open('/home/ec2-user/software/Sobol.jl/test/results/exp_results_{}'.format(d), 'r') as f:
+                lines = f.readlines()
+        in_data = []
+        counter = 0
+        for line in lines:
+                counter += 1
+                if counter == 1 or counter == 2:
+                        continue
+
+
+                in_data.append(line.split(" ")[:-1])
+                if len(in_data) == n:
+                        break
+        X = numpy.asarray(in_data, dtype=float)
+        
+
 	U = numpy.random.rand(d)
 	X += U
 	X -= numpy.floor(X)
@@ -108,17 +109,6 @@ def FracInRects(X, rects):
 		num_successes += sum(numpy.logical_and(above_min, below_max)) > 0
 	return num_successes * 1.0 / len(rects)
 
-def plot_stuff(cur_ax, alg_to_successes, num_rects, d, max_k, vol, samplers):
-	unif_success = {}
-	for k in range(max_k):
-		unif_success[k] = 1-numpy.power(1-vol,k)
-
-	for sampler in samplers:
-		cur_ax.plot(alg_to_successes[sampler].keys(), alg_to_successes[sampler].values(), color=samplers[sampler]['color'])
-
-	
-	cur_ax.plot(unif_success.keys(), unif_success.values(), color='y')
-	cur_ax.set_title('d={} vol={}'.format(d, vol))
 
 # these values will plot until random has a > max_unif_prob chance of having one success
 def GetMaxKs(vols, max_unif_prob):
@@ -205,37 +195,6 @@ def random_rect(samplers):
 
 
 
-
-# compute L1, L2 dist from origin and center
-def origin_center_data(samplers, eval_measures, ns, ds, sample_num):
-        n_max = ns[-1]
-
-
-	sampler_to_n_err = {}
-	for sampler in samplers:
-		n_to_d_err = {}
-		for n in ns:
-			d_to_measure_err = {}
-			for d in ds:
-				measure_to_err = {}
-				X = samplers[sampler]['fn'](n, d)
-				
-				for measure in eval_measures:
-					measure_to_err[measure] = eval_measures[measure](X)
-				d_to_measure_err[d] = measure_to_err
-			n_to_d_err[n] = d_to_measure_err
-			print("finishd n={}, sampler={}".format(n, sampler))
-		sampler_to_n_err[sampler] = n_to_d_err
-
-
-	#import pdb; pdb.set_trace()
-
-	import pickle
-	pickle_loc = 'pickled_data/origin_center_data/nmax={}_nsamplers={}_neval={}_d={}_samplenum={}'.format(n_max,
-			  len(samplers), len(eval_measures), ''.join(str(e)+',' for e in ds)[:-1], sample_num)
-	
-	pickle.dump(sampler_to_n_err, open(pickle_loc, 'wb'))
-	exit()
 	
 					
 
@@ -248,7 +207,10 @@ def draw_samples(samplers, ns, ds, sample_num):
                         for d in ds:
                                 X = samplers[sampler]['fn'](n,d)
                                 #print X
-                                pickle_loc = 'pickled_data/all_samples/sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
+                                dir_path = 'pickled_data/dim={}/'.format(d)
+                                if not os.path.isdir(dir_path):
+                                        os.makedirs(dir_path)
+                                pickle_loc = dir_path + 'sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
 
         
                                 pickle.dump(X, open(pickle_loc, 'wb'))
@@ -258,8 +220,8 @@ samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-	    #'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
-            'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
+	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
+            #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
             #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
             #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
             #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
@@ -267,25 +229,27 @@ samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
             #'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
             #'DPPNsquaredNarrow': {'fn': dpp_rbf_unitcube.DPPNsquaredNarrow, 'color': 'm'}
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
-        #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
+            'SobolSamplerHighD':{'fn': SobolSamplerHighD, 'color':'m'},
+            #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
     }
 
-#eval_measures = {'l2':get_min_l2_norm, 
-		 #'l1':get_min_l1_norm, 
-#		 'l2_cntr':get_min_l2_norm_center, 
-		 #'l1_cntr':get_min_l1_norm_center,
-#                 'discrep':get_discrepency}
 
-#random_rect(samplers)
-
+#print SobolSamplerHighD(750, 500)[0]
+#sys.exit()
+#for i in range(100):
+#        #SobolSampler(7,5)
+#        print SobolSamplerHighD(7, 5)[0]
+#
+#        sys.exit()
 
 
 numpy.random.seed()
-n_max = 150
+n_max = 750
 ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
 ns = sorted(list(set(ns)))
-#ns = [115]
-ds = [2]#,2,3,4,5]
+#ns = [750]
+#ns = [750]
+ds = [100,500]#,2,3,4,5]
 
 
 draw_samples(samplers, ns, ds, sys.argv[1])
@@ -295,79 +259,6 @@ draw_samples(samplers, ns, ds, sys.argv[1])
 
 
 
-
-exit()
-
-
-
-
-
-def simulator(eval, sampler, d, n_max, num_samples_per_index=10):
-	ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
-	ns = sorted(list(set(ns)))
-	s_hist = [[] for _ in range(len(ns))]
-	for it in range(num_samples_per_index*len(ns)):
-		idx = (it % len(ns))
-		n = ns[idx]
-		X = sampler(n, d)
-
-		val = eval(X)
-		s_hist[idx].append(val)
-
-		if it % num_samples_per_index == 0:
-			print '%d/%d' % (it, num_samples_per_index*len(ns))
-
-	vs = [numpy.mean(tmp) for tmp in s_hist]
-	err_us = [sorted(s_hist[i])[int(.75*len(s_hist[i]))] for i in range(len(s_hist))]
-	err_ls = [sorted(s_hist[i])[int(.25*len(s_hist[i]))] for i in range(len(s_hist))]
-	return ns, vs, err_ls, err_us
-
-NUM_SAMPLES_PER_INDEX = 300
-samplers = [{'name': 'RandomSampler',
-						 'fn': numpy.random.rand,
-						 'color': 'b'},
-						 {'name': 'SobolSampler',
-						 'fn': SobolSampler,
-						 'color': 'g'},
-						 {'name': 'RecurrenceSampler',
-						 'fn': RecurrenceSampler,
-						 'color': 'r'}]
-
-simulators = [{'name': '$\min_{i=1,\dots,n} ||x_i||_2^2$',
-				 'filename_prefix': 'l2_sq_d',
-				 'fn': get_min_l2_norm_squared},
-				 {'name': 'Star Discrepency',
-				 'filename_prefix': 'discrepency_d',
-				 'fn': get_discrepency},
-				{'name': '$\min_{i=1,\dots,n} ||x_i||_1$',
-				 'filename_prefix': 'l1_d',
-				 'fn': get_min_l1_norm}]
-
-n_max = 1000
-for sim in simulators:
-	for d in range(1,7):
-		for sampler in samplers:
-			print 'Starting %s with %s with d=%d' %(sim['name'], sampler['name'], d)
-			# ns, vs, err_ls, err_us = discrepency_simulator(sampler['fn'], d, n_max, num_samples_per_index=NUM_SAMPLES_PER_INDEX)
-
-			ns, vs, err_ls, err_us = simulator(sim['fn'], sampler['fn'], d, n_max, num_samples_per_index=NUM_SAMPLES_PER_INDEX)
-
-			print ns, vs
-			plt.plot(ns, vs, '.', color=sampler['color'], label=sampler['name'])
-			plt.fill_between(ns, err_ls, err_us, alpha=.1, color=sampler['color'])
-
-		plt.xscale('log')
-		plt.yscale('log')
-		plt.legend()
-		plt.title('Dimension d=%d' % d)
-		plt.xlabel('Number of points')
-		plt.ylabel(sim['name'])
-		ax = plt.gca()
-		ax.grid(True,which="both")
-                save_name = sim['filename_prefix']+'%d' % d
-                print("save_name:", save_name)
-		plt.savefig(save_name)
-		plt.close()
 
 
 

@@ -71,10 +71,10 @@ def pickle_sample(X_train, sigma, n, d):
 def main():
     start_time = time.time()
     d = 1
-    max_grid_size = 100001
+    max_grid_size = 1001
     # std dev, for RBF kernel
     # sigma=0.001 was good enough for k=1000
-    sigma = .003
+    sigma = .1
     X = np.linspace(0,1,num=max_grid_size)
     
     X = np.array([np.array([xi]) for xi in X])
@@ -85,7 +85,7 @@ def main():
     X_train = X[np.array([new_point])]
     X_test = np.delete(X, new_point,axis=0)    
     
-    k = 750
+    k = 50
     
     for i in range(k-1):
         start_iter_time = time.time()
@@ -97,10 +97,20 @@ def main():
                                                                            test_to_train_kernel_mtx, X_train, X_test, new_point, sigma)
 
         # compute unnorm probs        
-        lower = True
-        L = scipy.linalg.cholesky(train_kernel_mtx, lower)
-        v = np.linalg.solve(L, test_to_train_kernel_mtx.T)
-        unnorm_probs = 1-np.einsum('ij,ji->i', v.T,v)
+
+        new_L = use_eigendecomp(train_kernel_mtx)
+        new_v = np.linalg.solve(new_L, test_to_train_kernel_mtx.T)
+        new_unnorm_probs = 1-np.einsum('ij,ji->i', new_v.T,new_v)
+        unnorm_probs = new_unnorm_probs.real
+        print unnorm_probs[0:20]
+
+        #lower = True
+        #L = scipy.linalg.cholesky(train_kernel_mtx, lower)
+        #print('old_L.shape: {}'.format(L.shape))
+        #v = np.linalg.solve(L, test_to_train_kernel_mtx.T)
+        #unnorm_probs = 1-np.einsum('ij,ji->i', v.T,v)
+        
+        #print(np.linalg.norm(new_unnorm_probs - unnorm_probs))
 
         # get new point        
         new_point = one_multinom_sample(unnorm_probs)
@@ -113,6 +123,14 @@ def main():
     X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
     pickle_sample(X_train, sigma, k, d)
     
+
+def use_eigendecomp(train_kernel_mtx):
+    w, v = np.linalg.eig(train_kernel_mtx)
+    w = np.maximum(w, np.zeros(w.shape))
+    new_L = np.dot(np.dot(v, np.diag(np.sqrt(w))), v.T)
+    print new_L.shape
+    return new_L
+
         
 if __name__ == "__main__":
     main()

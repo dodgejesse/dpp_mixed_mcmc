@@ -9,21 +9,22 @@ n_max = 55
 ns = [int(np.exp(x)) for x in np.linspace(0, np.log(n_max), 20)]
 ns = sorted(list(set(ns)))
 #ns = [25,75,150]
-ns = [150]
+ns = [10]
 #import pdb; pdb.set_trace()
 # alpha scales the kernel
 
 
 for d in ds:
     for n in ns:
-        for g in [50]:#[1,2,5, 8, 20, 50, 75]:
+        for g in [20]:#[1,2,5, 8, 20, 50, 75]:
             import cProfile
             #cProfile.run('B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)', sort='cumtime')
             B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)
+            import pdb; pdb.set_trace()
             print("success with d={}, n={}, g={}".format(d,n,g))
             print(sorted(B_Y))
             print("")
-
+            
 exit()
 
 
