@@ -1,79 +1,15 @@
 import sys
 import os
 import numpy
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib import rc
+#import matplotlib
+#import matplotlib.pyplot as plt
+#from matplotlib import rc
 #rc('text', usetex=True)
 import sobol_seq as sobol
 import dpp_rbf_unitcube
+from current_experiment import *
 
 
-PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199]
-
-# i don't think i care about this
-def get_discrepency(X):
-	worse_value = 0.
-	for x in X:
-		p = numpy.exp(numpy.sum(numpy.log(x)))
-		p_hat = 0.
-		for y in X:
-			p_hat += float(all(y < x))
-		p_hat /= len(X)
-		worse_value = max(worse_value, abs(p-p_hat))
-		worse_value = max(worse_value, abs(p-p_hat-1./len(X)))
-	return worse_value
-
-# adds uniform noise in [0,1], then for those results above 1 it subtracts 1
-def SobolSampler(n, d):
-	X = sobol.i4_sobol_generate(d, n)
-        print X
-        return
-        sys.exit()
-	U = numpy.random.rand(d)
-	X += U
-	X -= numpy.floor(X)
-	return X
-
-# this method is to try and get sobol in D > 40
-# adds uniform noise in [0,1], then for those results above 1 it subtracts 1
-def SobolSamplerHighD(n, d):
-        assert d in [5, 50, 100, 500]
-        assert n < 1025
-        
-        with open('/home/ec2-user/software/Sobol.jl/test/results/exp_results_{}'.format(d), 'r') as f:
-                lines = f.readlines()
-        in_data = []
-        counter = 0
-        for line in lines:
-                counter += 1
-                if counter == 1 or counter == 2:
-                        continue
-
-
-                in_data.append(line.split(" ")[:-1])
-                if len(in_data) == n:
-                        break
-        X = numpy.asarray(in_data, dtype=float)
-        
-
-	U = numpy.random.rand(d)
-	X += U
-	X -= numpy.floor(X)
-	return X
-
-def SobolSamplerNoNoise(n, d):
-	X = sobol.i4_sobol_generate(d, n)
-	return X
-
-def RecurrenceSampler(n, d):
-	X = numpy.zeros((n, d))
-	X[0] = numpy.random.rand(d)
-	for i in range(1,n):
-		for k in range(d):
-			X[i, k] = X[0,k] + i*numpy.sqrt(PRIMES[k])
-			X[i, k] -= int(X[i, k])
-	return numpy.array(X)
 
 
 def HyperRectangleTarget(d, vol):
@@ -203,11 +139,16 @@ def draw_samples(samplers, ns, ds, sample_num):
         import pickle
         for sampler in samplers:
                 print sampler
-                for n in ns:
-                        for d in ds:
+                for d in ds:
+                        
+                        for n in ns:
+                                dir_path = 'pickled_data/dim={}/'.format(d)
+                                pickle_loc = dir_path + 'sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
+                                if os.path.exists(pickle_loc):
+                                        continue
                                 X = samplers[sampler]['fn'](n,d)
                                 #print X
-                                dir_path = 'pickled_data/dim={}/'.format(d)
+
                                 if not os.path.isdir(dir_path):
                                         os.makedirs(dir_path)
                                 pickle_loc = dir_path + 'sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
@@ -216,45 +157,31 @@ def draw_samples(samplers, ns, ds, sample_num):
                                 pickle.dump(X, open(pickle_loc, 'wb'))
 
 
-samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
-	    #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
-	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
-	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-	    'UniformSampler': {'fn': numpy.random.rand, 'color': 'c'},
-            #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
-            #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
-            #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
-            #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
-            #'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
-            #'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
-            #'DPPNsquaredNarrow': {'fn': dpp_rbf_unitcube.DPPNsquaredNarrow, 'color': 'm'}
-            #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
-            'SobolSamplerHighD':{'fn': SobolSamplerHighD, 'color':'m'},
-            #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
-    }
 
 
-#print SobolSamplerHighD(750, 500)[0]
-#sys.exit()
-#for i in range(100):
-#        #SobolSampler(7,5)
-#        print SobolSamplerHighD(7, 5)[0]
-#
-#        sys.exit()
+
+def draw_many_samples():
+        numpy.random.seed()
+        samplers = get_samplers()
+        ns = get_ns()
+        ds = get_ds()
+        num_samples = get_num_samples()
+        
+        for i in range(num_samples):
+                draw_samples(samplers, ns, ds, "{}_1".format(i))
+                print "finished {}".format(i)
 
 
-numpy.random.seed()
-n_max = 750
-ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
-ns = sorted(list(set(ns)))
-#ns = [750]
-#ns = [750]
-ds = [100,500]#,2,3,4,5]
 
-
-draw_samples(samplers, ns, ds, sys.argv[1])
-#origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
-
+if __name__ == "__main__":
+        
+        
+        
+        draw_many_samples()
+        
+        
+        #origin_center_data(samplers, eval_measures, n_max, ds, sys.argv[1])
+        
 
 
 

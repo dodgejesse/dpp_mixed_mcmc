@@ -1,46 +1,7 @@
 import numpy
 import pickle, glob
+from current_experiment import *
 
-# i don't think i care about this
-def get_discrepency(X):
-        worse_value = 0.
-	for x in X:
-		p = numpy.exp(numpy.sum(numpy.log(x)))
-		p_hat = 0.
-		for y in X:
-			p_hat += float(all(y < x))
-		p_hat /= len(X)
-		worse_value = max(worse_value, abs(p-p_hat))
-		worse_value = max(worse_value, abs(p-p_hat-1./len(X)))
-	return worse_value
-
-def get_min_norm(X, order):
-	return min(numpy.linalg.norm(X, ord=order, axis=1))
-
-def get_min_l2_norm(X):
-	#smallest_value = float('inf')
-	#for x in X:
-	#	tmp = numpy.dot(x, x)
-	#	smallest_value = min(smallest_value, tmp)
-	#return smallest_value
-	return get_min_norm(X, 2)
-
-def get_min_l1_norm(X):
-	#smallest_value = float('inf')
-	#for x in X:
-#		tmp = numpy.dot(x, numpy.sign(x))
-#		smallest_value = min(smallest_value, tmp)0
-#	return smallest_value
-
-	return get_min_norm(X, 1)
-
-def get_min_l2_norm_center(X):
-	center = numpy.ones(X.shape)*.5
-	return get_min_norm(X-center, 2)
-
-def get_min_l1_norm_center(X):
-	center = numpy.ones(X.shape)*.5
-	return get_min_norm(X-center, 1)
 
 def get_fname(sampler, n, d, sample_num):
     return 'pickled_data/all_samples/sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
@@ -180,10 +141,12 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                                                         if n not in cur_evals[d]:
                                                                 cur_evals[d][n] = {}
 
-                                                
+                                                        
                                                         sample_num = in_file_name.split("=")[-1]
+                                                        
                                                         if sample_num not in cur_evals[d][n]:
                                                                 pkl_file = open(in_file_name)
+                                                                #print in_file_name
                                                                 cur_sample = pickle.load(pkl_file)
                                                                 # compute eval
                                                                 cur_evals[d][n][sample_num] = eval_measures[eval_measure](cur_sample)
@@ -197,40 +160,20 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                         #print cur_evals.keys()
 
 
+def compute_discrep_for_samples():
+        samplers = get_samplers()
+        eval_measures = get_eval_measures()
+        ns = get_ns()
+        ds = get_ds()        
+        
+        compute_individual_errors(samplers, eval_measures, ns, ds)
+        #import cProfile
+        #import re
+        #cProfile.run('compute_individual_errors(samplers, eval_measures, ns, ds)', sort='cumtime')
+
+
+if __name__ == "__main__":
+        compute_discrep_for_samples()
 
 
 
-
-samplers = {#'SobolSampler',
-	    #'RecurrenceSampler',
-	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
-	    #'DPPnsquared',#: {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-	    'UniformSampler',
-            #'DPPNarrow',
-            #'DPPVNarrow',
-            #'DPPVVNarrow',
-            #'DPPVVVNarrow',
-            #'DPPNNarrow',
-            #'DPPNNNarrow'
-            #'DPPNsquaredNarrow'
-            #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
-            #'DPPSeqPostSigma001'
-            #'DPPSeqPostSigma003'
-            'SobolSamplerHighD'
-    }
-
-eval_measures = {'l2':get_min_l2_norm, 
-		 #'l1':get_min_l1_norm, 
-		 'l2_cntr':get_min_l2_norm_center, 
-		 #'l1_cntr':get_min_l1_norm_center,
-                 'discrep':get_discrepency}
-n_max = 750
-ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
-ns = sorted(list(set(ns)))
-#ns = range(n_max+1)
-
-ds = [100,500]#,2,3,4,5]
-
-
-#compute_errors(samplers, eval_measures, ns, ds)
-compute_individual_errors(samplers, eval_measures, ns, ds)

@@ -38,15 +38,20 @@ def DPPNsquaredNarrow(n,d):
     g = n*n
     return DPPSampler(n,d,gamma=g)
 
-def DPPSampler(n, d, clip_type=None,gamma=None, alpha=None):
+def DPPSigma(n,d,sigma = 0.1):
+    DPPSampler(n,d, sigma=sigma)
+    
+
+def DPPSampler(n, d, clip_type=None,gamma=None, alpha=None, sigma=None):
     
     sampler = zero_one_cube_unif_sampler.Cube_Sampler(d)
     
     
     if clip_type is None:
-        dist = rbf_kernel.RBF_Kernel(gamma, alpha)
+        dist = rbf_kernel.RBF_Kernel(gamma, alpha, sigma)
     else:
         dist = rbf_kernel.RBF_Clipped_Kernel(clip_type)
+        
 
     
 

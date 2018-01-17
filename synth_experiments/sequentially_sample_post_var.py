@@ -70,8 +70,8 @@ def pickle_sample(X_train, sigma, n, d):
 
 def main():
     start_time = time.time()
-    d = 1
-    max_grid_size = 1001
+    d = 8
+    max_grid_size = 101
     # std dev, for RBF kernel
     # sigma=0.001 was good enough for k=1000
     sigma = .1
@@ -85,7 +85,7 @@ def main():
     X_train = X[np.array([new_point])]
     X_test = np.delete(X, new_point,axis=0)    
     
-    k = 50
+    k = 10
     
     for i in range(k-1):
         start_iter_time = time.time()
@@ -98,17 +98,17 @@ def main():
 
         # compute unnorm probs        
 
-        new_L = use_eigendecomp(train_kernel_mtx)
-        new_v = np.linalg.solve(new_L, test_to_train_kernel_mtx.T)
-        new_unnorm_probs = 1-np.einsum('ij,ji->i', new_v.T,new_v)
-        unnorm_probs = new_unnorm_probs.real
-        print unnorm_probs[0:20]
+        #new_L = use_eigendecomp(train_kernel_mtx)
+        #new_v = np.linalg.solve(new_L, test_to_train_kernel_mtx.T)
+        #new_unnorm_probs = 1-np.einsum('ij,ji->i', new_v.T,new_v)
+        #unnorm_probs = new_unnorm_probs.real
+        #print unnorm_probs[0:20]
 
-        #lower = True
-        #L = scipy.linalg.cholesky(train_kernel_mtx, lower)
+        lower = True
+        L = scipy.linalg.cholesky(train_kernel_mtx, lower)
         #print('old_L.shape: {}'.format(L.shape))
-        #v = np.linalg.solve(L, test_to_train_kernel_mtx.T)
-        #unnorm_probs = 1-np.einsum('ij,ji->i', v.T,v)
+        v = np.linalg.solve(L, test_to_train_kernel_mtx.T)
+        unnorm_probs = 1-np.einsum('ij,ji->i', v.T,v)
         
         #print(np.linalg.norm(new_unnorm_probs - unnorm_probs))
 
@@ -121,6 +121,8 @@ def main():
     
     
     X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
+    print sorted(X_train)
+    sys.exit()
     pickle_sample(X_train, sigma, k, d)
     
 

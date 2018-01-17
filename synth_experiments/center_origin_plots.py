@@ -3,28 +3,12 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
+from current_experiment import *
 
             
-def get_samplers():
-    samplers = {'SobolSampler': 'g',
-                #'RecurrenceSampler': 'k',
-                #'SobolSamplerNoNoise': 'c',
-                #'DPPnsquared': 'r',
-                'UniformSampler': 'b'}
-                #'DPPNarrow': 'm',
-                #'DPPVNarrow': 'm',
-                #'DPPVVNarrow': 'k',}
-                #'DPPVVVNarrow': 'c'}
-                #'DPPNNarrow': 'r',
-                #'DPPNsquaredNarrow': 'm'}
-                #'DPPNNNarrow': 'c'}
-                #'DPPSeqPostSigma001': 'c',
-                #'DPPSeqPostSigma003': 'm'}
-    return samplers
-
 def get_sampler_names():
     sampler_names = {'SobolSampler': 'Sobol',
+                     'SobolSamplerHighD': 'Sobol',
                 'RecurrenceSampler': 'Add Recurrence',
                 'SobolSamplerNoNoise': 'Sobol No Noise',
                 'DPPnsquared': 'DPP-rbf-wide',
@@ -40,34 +24,17 @@ def get_sampler_names():
                      'DPPSeqPostSigma003': 'DPP-rbf-sigma=0.003'}
     return sampler_names
 
-def get_n_max():
-    return 750
-
-def get_ns():
-    n_max = get_n_max()
-    ns = [int(np.exp(x)) for x in np.linspace(0, np.log(n_max), 20)]
-    ns = sorted(list(set(ns)))
-    return ns
-    
-def get_ds():
-    ds = [40]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
-    return ds
-
-def get_eval_measures():
-    eval_measures = ['l2', 'l2_cntr', 'discrep']#['l2', 'l1', 'l2_cntr', 'l1_cntr', 'discrep']
-    return eval_measures
-
 def get_measure_names():
     measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy'}
     return measure_names
 
 
-def get_filename(ds, measures, samplers):
-    example_filename = 'ds={}_measures={}_samplers={}_nmax={}'
+def get_filename(ds, measures, samplers, min_sample_num):
+    example_filename = 'ds={}_measures={}_samplers={}_nminandmax={}-{}_minnumsamples={}'
     fname = example_filename.format(''.join(str(e)+',' for e in ds)[:-1],
                                     ''.join(str(e)+',' for e in measures)[:-1], 
                                     ''.join(str(e)+',' for e in samplers)[:-1], 
-                                    get_n_max())
+                                    get_n_min(), get_n_max(), min_sample_num)
     return fname
 
 
@@ -110,16 +77,17 @@ def compute_averages(data):
                         avgs[sampler][n][d][measure] = []
                     #print data[sampler][measure].keys()
                     #print sampler, measure, n, d
+                    #print sorted(data[sampler][measure][d].keys())
 
                     for sample_num in data[sampler][measure][d][n]:
 
                         # there's some data which was generated with n^3 iters of mcmc, but we want to exclude it.
-                        subsample_num = sample_num[len(sample_num)-1]
-                        bad_sample_nums = ['4','5','6']#['1','2','3']
-                        bad_sample = subsample_num in bad_sample_nums
-                        if "PNNarrow" in sampler and d == 1 and n == 40 and bad_sample:
-                            #import pdb; pdb.set_trace()
-                            continue
+                        #subsample_num = sample_num[len(sample_num)-1]
+                        #bad_sample_nums = ['4','5','6']#['1','2','3']
+                        #bad_sample = subsample_num in bad_sample_nums
+                        #if "PNNarrow" in sampler and d == 1 and n == 40 and bad_sample:
+                        #    #import pdb; pdb.set_trace()
+                        #    continue
 
                         avgs[sampler][n][d][measure].append(data[sampler][measure][d][n][sample_num])
 
@@ -190,14 +158,14 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
             one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers)
             #cur_ax.set_ylabel(get_measure_names()[measure])
-            if d == 4:
-                cur_ax.set_xlabel('k, between 1 and 150')
-            if d == 2 and measure == 'discrep':
+            if d == ds[0] and measure == 'discrep':
                 cur_ax.set_title('star discrepancy')
-            elif d == 2 and measure == 'l2':
+            elif d == ds[0] and measure == 'l2':
                 cur_ax.set_title('distance from origin')
-            elif d == 2 and measure == 'l2_cntr':
+            elif d == ds[0] and measure == 'l2_cntr':
                 cur_ax.set_title('distance from center')
+            if measure == 'discrep' and d == ds[-1]:
+                cur_ax.set_xlabel('k, between {} and {}'.format(get_n_min(), get_n_max()))
             if measure == 'discrep':
                 cur_ax.set_ylabel('d={}'.format(d))
 
@@ -207,10 +175,11 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
 
 
     print("the min samples: ", min_samples)
-
+    min_samp_num = min([x[3] for x in min_samples])
+    
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/seq_post/' + get_filename(ds, measures, samplers) + '.pdf'
+    out_fname = 'plots/sobol_worse_than_unif/' + get_filename(ds, measures, samplers, min_samp_num) + '.pdf'
     plt.savefig(out_fname)
     print("saving to {}".format(out_fname))
 
@@ -243,14 +212,14 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
         #del err_us[len(err_us)-1]
         #del ns_offset[len(ns_offset)-1]
 
-        cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler], label=sampler_label)
-        cur_ax.fill_between(ns_offset, err_ls, err_us, alpha=.1, color=get_samplers()[sampler])
+        cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler]['color'], label=sampler_label)
+        cur_ax.fill_between(ns_offset, err_ls, err_us, alpha=.1, color=get_samplers()[sampler]['color'])
         cur_ax.set_xscale('log')
         cur_ax.set_yscale('log')
         cur_ax.grid(True, which="both")
         cur_ax.legend()
     
-        
+
 	
 
 
@@ -269,10 +238,13 @@ def print_averages(avgs, stds):
     sys.exit()
 
 
+def make_plots():
 
-data = load_errors()
-#data = get_data()
+    data = load_errors()
+    #data = get_data()
+    
+    compute_averages(data)
 
-
-compute_averages(data)
+if __name__ == "__main__":
+    make_plots()
  

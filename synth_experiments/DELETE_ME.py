@@ -3,37 +3,60 @@ import rbf_kernel
 import zero_one_cube_unif_sampler
 import numpy as np
 import dpp_mcmc_sampler
-
-ds = [1]
-n_max = 55
-ns = [int(np.exp(x)) for x in np.linspace(0, np.log(n_max), 20)]
-ns = sorted(list(set(ns)))
-#ns = [25,75,150]
-ns = [10]
-#import pdb; pdb.set_trace()
-# alpha scales the kernel
+from current_experiment import *
 
 
-for d in ds:
-    for n in ns:
-        for g in [20]:#[1,2,5, 8, 20, 50, 75]:
-            import cProfile
-            #cProfile.run('B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)', sort='cumtime')
-            B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)
-            import pdb; pdb.set_trace()
-            print("success with d={}, n={}, g={}".format(d,n,g))
-            print(sorted(B_Y))
-            print("")
-            
+
+
+num_points_per_dim = 5
+d = 2
+thing = [np.linspace(0,1,num_points_per_dim) for i in range(d)]
+
+print thing
+print("")
+
+XXX = np.meshgrid(*thing, indexing='ij')
+print XXX[0]
+
+X = np.linspace(0,1,num=num_points_per_dim)
+print X
+X = np.array([np.array([xi]) for xi in X])
+print X
+
+
+
+
+
+
 exit()
+draw_samples()
+    
 
 
 
-dist = rbf_kernel.RBF_Clipped_Kernel('k')
-
-
-num_influential = {}
-
+def draw_samples():
+    ds = [1]
+    n_max = 55
+    ns = [int(np.exp(x)) for x in np.linspace(0, np.log(n_max), 20)]
+    ns = sorted(list(set(ns)))
+    #ns = [25,75,150]
+    ns = [10]
+    #import pdb; pdb.set_trace()
+    # alpha scales the kernel
+    
+    
+    for d in ds:
+        for n in ns:
+            for g in [20]:#[1,2,5, 8, 20, 50, 75]:
+                import cProfile
+                #cProfile.run('B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)', sort='cumtime')
+                B_Y = dpp_rbf_unitcube.DPPSampler(n,d, gamma=g)
+                import pdb; pdb.set_trace()
+                print("success with d={}, n={}, g={}".format(d,n,g))
+                print(sorted(B_Y))
+                print("")
+            
+    exit()
 
 
 
