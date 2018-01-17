@@ -92,11 +92,6 @@ def print_unif_samps_dets(L, k, num_samps, rng):
     print('avg: {}'.format(np.average(dets)))
      
 
-# returns alpha s.t. logdet(alpha*L_Y) > -500
-def get_kernel_multiplier(L_Y):
-    cur_alpha = 1
-    np.linalg.slogdet(L_Y)
-    
 
 # returns a sample from a DPP defined over a mixed discrete and contiuous space
 # requires unif_sampler, which is an object initialized with a dimension d,
@@ -238,6 +233,7 @@ def compute_approx_inv(L_Y):
     #import pdb; pdb.set_trace()
     vals, vects = np.linalg.eigh(L_Y)
     eigvals_sum = sum(vals)
+
     epsilon = 0.0001 * eigvals_sum
 
     vects_q = vects[:,vals > epsilon]
@@ -250,8 +246,8 @@ def compute_approx_inv(L_Y):
     #DEBUG
     #print('full set: ', vals)
     #print('reduced set: ', vals_q)
-    #print('num eigenvals removed: {}'.format(len(vals) - len(vals_q)))
-    #print(np.linalg.cond(cap_lambda), np.linalg.cond(L_Y))
+    print('num eigenvals removed: {}'.format(len(vals) - len(vals_q)))
+    print(np.linalg.cond(cap_lambda), np.linalg.cond(L_Y))
     
 
     return cap_lambda, vects_q
