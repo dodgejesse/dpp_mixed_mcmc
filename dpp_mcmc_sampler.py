@@ -104,19 +104,21 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
 
     start_time = time.time()
     print_debug = False
-    use_log_dets = k > 20
+    use_log_dets = k > 75
 
     # should figure out the best thing to do here
     if max_iter is None:
         import math
         max_iter = 5*int(len(L)*math.log(len(L)))
 
-    #import pdb; pdb.set_trace()
-
-    unfeat_B_Y, B_Y, L_Y = sample_initial(unif_sampler, k, dist_comp, use_log_dets)
-
     if k == 1:
-        return unfeat_B_Y, B_Y, L_Y, time.time() - start_time
+        unfeat_B_Y, B_Y = unif_sampler(k)
+        L_Y = [1]
+        return [unfeat_B_Y], B_Y, L_Y, time.time() - start_time
+    
+    
+    unfeat_B_Y, B_Y, L_Y = sample_initial(unif_sampler, k, dist_comp, use_log_dets)
+    
 
     if print_debug:
         numerator_counter = 0
@@ -137,9 +139,9 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
         u_index = rng.choice(range(len(L_Y)))
         v_unfeat_vect, v_feat_vect = unif_sampler(1)
         
-        #det_ratio, B_Y_prime, L_Y_prime = get_det_ratio(u_index, v_unfeat_vect, v_feat_vect, L_Y, B_Y, use_log_dets, dist_comp)
+        det_ratio_s, B_Y_prime, L_Y_prime = get_det_ratio(u_index, v_unfeat_vect, v_feat_vect, L_Y, B_Y, use_log_dets, dist_comp)
         
-        det_ratio_s  = get_simplified_det_ratio(B_Y, L_Y, u_index, v_feat_vect, dist_comp)
+        #det_ratio_s  = get_simplified_det_ratio(B_Y, L_Y, u_index, v_feat_vect, dist_comp)
 
 
         #import pdb; pdb.set_trace()

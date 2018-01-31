@@ -5,7 +5,7 @@ class RBF_Kernel():
     # gamma is the bandwidth parameter, alpha is the scaling parameter
     def __init__(self, gamma = None, alpha = None, sigma = None):
         assert not gamma is None or not sigma is None
-        if g is not None:
+        if gamma is not None:
             self.g = gamma
         else:
             self.g = 1.0/(2 * sigma * sigma)
