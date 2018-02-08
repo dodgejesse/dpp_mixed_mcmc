@@ -21,7 +21,7 @@ def get_samplers():
             #'SobolSamplerHighD':{'fn': SobolSamplerHighD, 'color':'m'},
             #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
         
-            'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=0.01), 'color': 'm'},
+            'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
     }
     return samplers
 
