@@ -21,7 +21,8 @@ def get_sampler_names():
                      'DPPNNNarrow': 'DPP-rbf-g=n',
                      'DPPNsquaredNarrow': 'DPP-rbf-g=n*n',
                      'DPPSeqPostSigma001': 'DPP-rbf-sigma=0.001',
-                     'DPPSeqPostSigma003': 'DPP-rbf-sigma=0.003'}
+                     'DPPSeqPostSigma003': 'DPP-rbf-sigma=0.003',
+                     'DPPSeqPostSigma004': 'DPP-rbf-sigma=0.004',}
     return sampler_names
 
 def get_measure_names():
@@ -48,6 +49,7 @@ def load_errors():
                 if not sampler in data:
                     data[sampler] = {}
                 data[sampler][eval_measure] = pickle.load(pkl_file)
+                print("successfully loaded {}".format(pkl_file))
             except:
                 print("tried {}, {}, but doesn't exist".format(sampler, eval_measure))
 
@@ -179,7 +181,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/sobol_worse_than_unif/' + get_filename(ds, measures, samplers, min_samp_num) + '.pdf'
+    out_fname = 'plots/icml_2018/' + get_filename(ds, measures, samplers, min_samp_num) + '.pdf'
     plt.savefig(out_fname)
     print("saving to {}".format(out_fname))
 

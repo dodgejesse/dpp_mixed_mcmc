@@ -93,7 +93,8 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                                         pickle_file.close()
                         except:
                                 cur_evals = {}
-
+                        #import pdb; pdb.set_trace()
+ 
                         if 'SeqPost' in sampler:
                                 d = 1
                                 in_file_names = glob.glob(get_in_name(sampler, 1, d))
@@ -101,18 +102,20 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                                 counter = 0
                                 for in_file_name in in_file_names:
                                         sample_num = in_file_name.split("=")[-1]
+                                        counter += 1
 
                                         pkl_file = open(in_file_name)
                                         cur_sample = pickle.load(pkl_file)
-                                        
+
+                                        print "sampler={}, eval={}, ns={}, d={}, samples={}, samples seen so far={}".format(sampler, eval_measure, ns, d, len(in_file_names), counter)  
                                         for n in ns:
                                                 if d not in cur_evals:
                                                         cur_evals[d] = {}
                                                 if n not in cur_evals[d]:
                                                         cur_evals[d][n] = {}
-                                                if eval_measure == 'discrep' and n == 749:
-                                                        counter += 1
-                                                        print "sampler={}, eval={}, n={}, d={}, num_seen={}".format(sampler, eval_measure, n, d, counter)
+                                                #if eval_measure == 'discrep' and n == 749:
+
+
                                         
 
                                                 if sample_num not in cur_evals[d][n]:
@@ -165,7 +168,6 @@ def compute_discrep_for_samples():
         eval_measures = get_eval_measures()
         ns = get_ns()
         ds = get_ds()        
-        
         compute_individual_errors(samplers, eval_measures, ns, ds)
         #import cProfile
         #import re

@@ -3,13 +3,14 @@ import dpp_rbf_unitcube
 #import center_origin_plots
 import sobol_seq as sobol
 import functools
+import sequentially_sample_post_var
 
 def get_samplers():
-    samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
+    samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
 	    #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-	    #'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
+	    'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
             #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
             #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
             #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
@@ -20,20 +21,22 @@ def get_samplers():
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
             #'SobolSamplerHighD':{'fn': SobolSamplerHighD, 'color':'m'},
             #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
-        
-            'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
+    
+            #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
+            'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.draw_many_samples_sigma_sqrt2overn, 'color': 'm'},
+            #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
     }
     return samplers
 
 # useful for DPPSigma
 def get_sigma():
-    0.01
+    return 0.141
 
 def get_n_min():
-    return 50
+    return 1
 
 def get_n_max():
-    return 150
+    return 500
 
 def get_ns():
     n_max = get_n_max()
@@ -43,7 +46,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [12]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 
@@ -58,7 +61,7 @@ def get_eval_measures():
     return eval_measures
 
 def get_num_samples():
-    return 2000
+    return 50
 
 #if __name__ == "__main__":
 #    discrepancy.draw_many_samples()

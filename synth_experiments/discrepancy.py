@@ -175,8 +175,6 @@ def draw_many_samples():
 
 if __name__ == "__main__":
         
-        
-        
         draw_many_samples()
         
         

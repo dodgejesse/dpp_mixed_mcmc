@@ -3,7 +3,7 @@ import time
 import scipy.linalg
 import pickle
 import sys
-
+from current_experiment import *
 
 
 def one_multinom_sample(unnorm_probs):
@@ -64,17 +64,18 @@ def initialize_kernel_matrices(X_train, X_test, sigma):
     
     return train_kernel_mtx, test_to_train_kernel_mtx
 
-def pickle_sample(X_train, sigma, n, d):
-    pickle_loc = 'pickled_data/dim=1/sampler=DPPSeqPostSigma{}_n={}_d={}_samplenum={}'.format(str(sigma)[2:], n, d, sys.argv[1])
+def pickle_sample(X_train, sigma, n, d, sigma_name):
+    if sigma_name == "Sqrt2overN":
+        pickle_loc = 'pickled_data/dim=1/sampler=DPPPostVarSigma{}_n={}_d={}_samplenum={}'.format(sigma_name, n, d, sys.argv[1])
+    else:
+        pickle_loc = 'pickled_data/dim=1/sampler=DPPSeqPostSigma{}_n={}_d={}_samplenum={}'.format(str(sigma)[2:], n, d, sys.argv[1])
     pickle.dump(X_train, open(pickle_loc, 'wb'))
 
-def main():
+def main(d, k, sigma, sigma_name):
     start_time = time.time()
-    d = 1
     max_grid_size = 10000
     # std dev, for RBF kernel
     # sigma=0.001 was good enough for k=1000
-    sigma = .004
     X = np.linspace(0,1,num=max_grid_size)
     
     X = np.array([np.array([xi]) for xi in X])
@@ -85,7 +86,7 @@ def main():
     X_train = X[np.array([new_point])]
     X_test = np.delete(X, new_point,axis=0)    
     
-    k = 500
+
     
     for i in range(k-1):
         start_iter_time = time.time()
@@ -115,14 +116,18 @@ def main():
         # get new point        
         new_point = one_multinom_sample(unnorm_probs)
         
-        print("iteration: {}. this iter time: {}. total elapsed time: {}".format(i, 
+        if i > 100 or i == range(k-1)[-1]:
+            print("iteration: {}. this iter time: {}. total elapsed time: {}".format(i, 
                                                             round(time.time() - start_iter_time,2), round(time.time() - start_time,2)))
 
     
     
     X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
-    print sorted(X_train)
-    pickle_sample(X_train, sigma, k, d)
+    #print sorted(X_train)
+    print "finished sampling n={} d={} sigma={}".format(k, d, sigma)
+    print("")
+    #sys.exit()
+    pickle_sample(X_train, sigma, k, d, sigma_name)
     
 
 def use_eigendecomp(train_kernel_mtx):
@@ -133,5 +138,23 @@ def use_eigendecomp(train_kernel_mtx):
     return new_L
 
         
+def draw_many_samples():
+    ds = get_ds()
+    ns = get_ns()
+    sigma = get_sigma()
+    for d in ds:
+        for n in ns:
+            main(d, n, sigma, str(sigma))
+
+def draw_many_samples_sigma_sqrt2overn():
+    ds = get_ds()
+    ns = get_ns()
+    
+    for d in ds:
+        for n in ns:
+            sigma = np.sqrt(2.0)/n
+            main(d, n, sigma, "Sqrt2overN")
+
+
 if __name__ == "__main__":
-    main()
+    draw_many_samples_sigma_sqrt2overn()
