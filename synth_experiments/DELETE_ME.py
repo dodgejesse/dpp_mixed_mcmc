@@ -6,7 +6,15 @@ import dpp_mcmc_sampler
 from current_experiment import *
 
 
+print get_ns()
+print len(get_ns())
+exit()
 
+for i in range(500):
+    i = i+1
+    print i, np.sqrt(2.0)/i
+
+exit()
 
 num_points_per_dim = 5
 d = 2

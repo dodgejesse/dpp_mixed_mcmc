@@ -22,7 +22,8 @@ def get_sampler_names():
                      'DPPNsquaredNarrow': 'DPP-rbf-g=n*n',
                      'DPPSeqPostSigma001': 'DPP-rbf-sigma=0.001',
                      'DPPSeqPostSigma003': 'DPP-rbf-sigma=0.003',
-                     'DPPSeqPostSigma004': 'DPP-rbf-sigma=0.004',}
+                     'DPPSeqPostSigma004': 'DPP-rbf-sigma=0.004',
+                     'DPPPostVarSigmaSqrt2overN': 'k-DPP-RBF',}
     return sampler_names
 
 def get_measure_names():
@@ -168,8 +169,8 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
                 cur_ax.set_title('distance from center')
             if measure == 'discrep' and d == ds[-1]:
                 cur_ax.set_xlabel('k, between {} and {}'.format(get_n_min(), get_n_max()))
-            if measure == 'discrep':
-                cur_ax.set_ylabel('d={}'.format(d))
+            #if measure == 'discrep':
+            #    cur_ax.set_ylabel('d={}'.format(d))
 
 
 

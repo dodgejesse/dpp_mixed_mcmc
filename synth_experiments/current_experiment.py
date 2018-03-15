@@ -61,7 +61,7 @@ def get_eval_measures():
     return eval_measures
 
 def get_num_samples():
-    return 50
+    return 200
 
 #if __name__ == "__main__":
 #    discrepancy.draw_many_samples()
