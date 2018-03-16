@@ -6,6 +6,30 @@ import dpp_mcmc_sampler
 from current_experiment import *
 
 
+
+
+
+ns = [25,50,75]
+ds = [1,3,5,7,9]
+determinants={}
+for d in ds:
+    determinants[d]={}
+    for n in ns:
+        
+        determinants[d][n] = []
+        #determinants[d][n] = 1.0*(n*n)/(d*d*d)
+        for i in range(1):
+            determinants[d][n].append(dpp_rbf_unitcube.DPPNsquaredOverD(n,d)[1])
+            print("done with d={}, n={}".format(d,n))
+
+for d in ds:
+    #print determinants[d]
+    for n in ns:
+        print "d={}, n={}".format(d, n), determinants[d][n], np.mean(determinants[d][n]), np.var(determinants[d][n])
+
+exit()
+
+
 print get_ns()
 print len(get_ns())
 exit()

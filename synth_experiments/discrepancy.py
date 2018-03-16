@@ -158,19 +158,37 @@ def draw_samples(samplers, ns, ds, sample_num):
 
 
 
-
+def draw_unif_points_for_eval(ds):
+        import pickle
+        n = get_num_unif_eval()
+        dir_path = "pickled_data/unif_samples_for_eval/"
+        for d in ds:
+                pickle_loc = dir_path + "sampler={}_n={}_dim={}".format('uniform', n, d)
+                if os.path.exists(pickle_loc):
+                        continue
+                X = numpy.random.rand(n, d)
+                pickle.dump(X, open(pickle_loc, 'wb'))
+                print("should have uniform samples to evaluate against for d={}".format(d))
+                
 
 def draw_many_samples():
         numpy.random.seed()
         samplers = get_samplers()
         ns = get_ns()
         ds = get_ds()
-        num_samples = get_num_samples()
+        if len(sys.argv) == 1:
+                num_samples = get_num_samples()
         
-        for i in range(num_samples):
-                draw_samples(samplers, ns, ds, "{}_1".format(i))
-                print "finished {}".format(i)
+        
+                for i in range(num_samples):
+                        draw_samples(samplers, ns, ds, "{}_1".format(i))
+                        print "finished {}".format(i)
 
+                if 'unif_point' in get_eval_measures():
+                        draw_unif_points_for_eval(ds)
+
+        else:
+                draw_samples(samplers, ns, ds, sys.argv[1])
 
 
 if __name__ == "__main__":

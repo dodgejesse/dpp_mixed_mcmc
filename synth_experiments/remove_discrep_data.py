@@ -1,6 +1,6 @@
 import numpy
 import pickle, glob
-
+import current_experiment
 
 def get_fname(sampler, n, d, sample_num):
     return 'pickled_data/all_samples/sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
@@ -54,26 +54,27 @@ samplers = {#'SobolSampler',
 	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
 	    #'DPPnsquared',#: {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
 	    #'UniformSampler',
-            'DPPNarrow',
+            #'DPPNarrow',
             #'DPPVNarrow',
-            'DPPVVNarrow',
-            'DPPVVVNarrow',
+            #'DPPVVNarrow',
+            #'DPPVVVNarrow',
             #'DPPNNarrow',
             #'DPPNNNarrow'
-            #'DPPNsquaredNarrow'
+            #'DPPNsquaredNarrow',
+            'DPPPostVarSigmaSqrt2overN',
             #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
+    
     }
 
 eval_measures = ['l2', 'l2_cntr','discrep']
 
 
-n_max = 150
-#ns = [int(numpy.exp(x)) for x in numpy.linspace(0, numpy.log(n_max), 20)]
-#ns = sorted(list(set(ns)))
-ns = range(n_max+1)
-ns = 'all'
+
+
+ns = current_experiment.get_ns()
+ns = [1]
 ds = [1]#,2,3,4,5]
 
-
+import pdb; pdb.set_trace()
 #compute_errors(samplers, eval_measures, ns, ds)
 remove_errors(samplers, eval_measures, ns, ds)

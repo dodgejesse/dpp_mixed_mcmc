@@ -38,6 +38,10 @@ def DPPNsquaredNarrow(n,d):
     g = n*n
     return DPPSampler(n,d,gamma=g)
 
+def DPPNsquaredOverD(n,d):
+    g = 1.0*(n*n)/(d*d*d)
+    return DPPSampler(n,d,gamma=g)
+
 def DPPSigma(n,d,sigma = 0.1):
     DPPSampler(n,d, sigma=sigma)
     
@@ -62,7 +66,11 @@ def DPPSampler(n, d, clip_type=None,gamma=None, alpha=None, sigma=None):
     #for i in range(num_retries):
         #try:
     unfeat_B_Y, B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
-        #print np.linalg.slogdet(L_Y)
+    if n > 1:
+        print("from this dpp sample, with d={}, n={}:".format(d,n))
+        print gamma, np.linalg.det(L_Y)
+        print("")
+    
     return B_Y
         #except:
         #    pass

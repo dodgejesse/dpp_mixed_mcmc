@@ -104,7 +104,7 @@ def sample_k_disc_and_cont(unif_sampler, dist_comp, k, max_iter=None, rng=np.ran
 
     start_time = time.time()
     print_debug = False
-    use_log_dets = k > 75
+    use_log_dets = False #k > 75
 
     # should figure out the best thing to do here
     if max_iter is None:

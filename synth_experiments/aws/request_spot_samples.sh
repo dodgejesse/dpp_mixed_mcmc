@@ -96,8 +96,8 @@ for ONE_SPOT_IP in ${SPOT_IP}; do
 
     COMMANDS=""
     for i in `seq 1`; do
-	#COMMANDS="$COMMANDS python discrepancy.py ${COUNTER}_${i};"
-	COMMANDS="$COMMANDS python sequentially_sample_post_var.py ${COUNTER}_${i};"
+	COMMANDS="$COMMANDS python discrepancy.py ${COUNTER}_${i};"
+	#COMMANDS="$COMMANDS python sequentially_sample_post_var.py ${COUNTER}_${i};"
     done
 
     #SAMPLE_STORAGE_LOC="/home/ec2-user/projects/dpp_mixed_mcmc/synth_experiments/pickled_data/all_samples"

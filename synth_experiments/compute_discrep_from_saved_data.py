@@ -7,42 +7,6 @@ def get_fname(sampler, n, d, sample_num):
     return 'pickled_data/all_samples/sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,sample_num)
     
 
-def compute_errors(samplers, eval_measures, ns, ds):
-        #import pickle
-    for sample_counter in range(50):
-        print(sample_counter)
-        for sample_subcounter in range(1,4):
-            sample_num = '{}_{}'.format(sample_counter, sample_subcounter)
-
-            sampler_to_n_err = {}
-            for sampler in samplers:
-		n_to_d_err = {}
-		for n in ns:
-                    d_to_measure_err = {}
-                    for d in ds:
-                        measure_to_err = {}
-                        file_name = get_fname(sampler, n, d, sample_num)
-                        print file_name
-                        pkl_file = open(file_name)
-                        X = pickle.load(pkl_file)
-
-                        
-                        for measure in eval_measures:
-                            measure_to_err[measure] = eval_measures[measure](X)
-                        d_to_measure_err[d] = measure_to_err
-                    n_to_d_err[n] = d_to_measure_err
-                    #print("finishd n={}, sampler={}".format(n, sampler))
-		sampler_to_n_err[sampler] = n_to_d_err
-
-
-            #import pdb; pdb.set_trace()
-
-
-            pickle_loc = 'pickled_data/errors_from_samples/nmax={}_nsamplers={}_neval={}_d={}_samplenum={}'.format(n_max,
-			  len(samplers), len(eval_measures), ''.join(str(e)+',' for e in ds)[:-1], sample_num)
-	
-            pickle.dump(sampler_to_n_err, open(pickle_loc, 'wb'))
-
 
 
 def get_out_name(sampler, eval_measure):
@@ -153,8 +117,9 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                                                                 cur_sample = pickle.load(pkl_file)
                                                                 # compute eval
                                                                 cur_evals[d][n][sample_num] = eval_measures[eval_measure](cur_sample)
+                                                                #print n, d, cur_sample
                                                                 #print(cur_evals[d][n][sample_num])
-
+                                                                
                         with open(get_out_name(sampler, eval_measure), 'wb') as pickle_file:
                                 pickle.dump(cur_evals, pickle_file)
 

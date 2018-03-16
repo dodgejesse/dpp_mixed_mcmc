@@ -121,13 +121,14 @@ def main(d, k, sigma, sigma_name):
                                                             round(time.time() - start_iter_time,2), round(time.time() - start_time,2)))
 
     
-    
-    X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
+    if k > 1:
+        X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
     #print sorted(X_train)
     print "finished sampling n={} d={} sigma={}".format(k, d, sigma)
     print("")
     #sys.exit()
-    pickle_sample(X_train, sigma, k, d, sigma_name)
+    #pickle_sample(X_train, sigma, k, d, sigma_name)
+    return X_train
     
 
 def use_eigendecomp(train_kernel_mtx):
@@ -145,6 +146,10 @@ def draw_many_samples():
     for d in ds:
         for n in ns:
             main(d, n, sigma, str(sigma))
+
+def one_sample_sigma_sqrt2over2(n,d):
+    sigma = np.sqrt(2.0)/n
+    return main(d, n, sigma, "Sqrt2overN")
 
 def draw_many_samples_sigma_sqrt2overn():
     ds = get_ds()
