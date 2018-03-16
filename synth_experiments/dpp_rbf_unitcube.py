@@ -90,6 +90,8 @@ def DPPSearchSigma(n,d):
             cur_sigma = cur_sigma * step_size
         else:
             break
+        if step_size == 1:
+            break
 
     #print "FINAL ASSIGNMENTS: n={}, d={}, cur_sigma={}, step_size={}, avg_signs={}, avg_logdets={}".format(n,d,cur_sigma, step_size, np.average(signs), np.average(logdets))
     #print("")
