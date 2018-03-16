@@ -65,7 +65,7 @@ def DPPSearchSigma(n,d):
             signs.append(sign)
             logdets.append(logdet)
         #print "n={}, d={}, cur_sigma={}, step_size={}, avg_signs={}, avg_logdets={}".format(n,d,cur_sigma, step_size, np.average(signs), np.average(logdets))
-            
+
         if np.average(signs) < 1:
             cur_det = 0
         else:
@@ -74,13 +74,13 @@ def DPPSearchSigma(n,d):
 
         # check if the det is too small or large.
         # if it is, grow or shrink it. if it jumped over the good range, shrink the step size.
-        if cur_det < 10**-25:
+        if cur_det < 10**-50:
             det_too_small = True
             if det_too_big:
                 step_size = np.sqrt(step_size)
                 det_too_big = False
             cur_sigma = cur_sigma / step_size
-        elif cur_det > 10**-22:
+        elif cur_det > 10**-45:
             det_too_big = True
             if det_too_small:
                 step_size = np.sqrt(step_size)
