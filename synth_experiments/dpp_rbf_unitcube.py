@@ -96,7 +96,7 @@ def DPPSearchSigma(n,d):
     #print "FINAL ASSIGNMENTS: n={}, d={}, cur_sigma={}, step_size={}, avg_signs={}, avg_logdets={}".format(n,d,cur_sigma, step_size, np.average(signs), np.average(logdets))
     #print("")
     #return cur_sigma
-    DPPSampler(n,d,sigma=cur_sigma)
+    return DPPSampler(n,d,sigma=cur_sigma)
 
 def DPPSampler(n, d, clip_type=None,gamma=None, alpha=None, sigma=None):
     
