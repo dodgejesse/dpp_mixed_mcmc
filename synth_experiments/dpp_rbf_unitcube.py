@@ -54,6 +54,8 @@ def DPPSearchSigma(n,d):
     det_too_small = False
     det_too_big = False
     while True:
+        if n == 1: 
+            break
         #import pdb; pdb.set_trace()
         dist_comp = rbf_kernel.RBF_Kernel(sigma=cur_sigma)
         signs = []
