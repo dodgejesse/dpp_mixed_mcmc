@@ -8,11 +8,11 @@ import sequentially_sample_post_var
 import scipy
 
 def get_samplers():
-    samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
+    samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
                 #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
                 #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
                 #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-                'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
+                #'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
                 #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
                 #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
                 #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
@@ -66,7 +66,7 @@ def get_eval_measures():
                      'l2_cntr':get_min_l2_norm_center, 
                      #'l1_cntr':get_min_l1_norm_center,
                      #'discrep':get_discrepency,
-                     'unif_point':get_min_to_uniformly_sampled_point
+                     #'unif_point':get_min_to_uniformly_sampled_point
                  }
 
     return eval_measures
