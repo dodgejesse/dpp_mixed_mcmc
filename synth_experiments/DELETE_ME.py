@@ -9,7 +9,7 @@ from current_experiment import *
 
 
 
-ns = [5,25,50,75,100]
+ns = [5,25,50,75]
 ds = [1,3,5,7,9]
 sigmas={}
 for d in ds:
@@ -22,6 +22,7 @@ for d in ds:
             
         sigmas[d][n] = dpp_rbf_unitcube.DPPSearchSigma(n,d)
         #print("done with d={}, n={}".format(d,n))
+
 print ns
 for d in ds:
     print d, [round(sigmas[d][n],5) for n in ns]

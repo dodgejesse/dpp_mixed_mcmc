@@ -43,7 +43,7 @@ def get_num_unif_eval():
     return 1000
 
 def get_n_min():
-    return 1
+    return 3
 
 def get_n_max():
     return 100
