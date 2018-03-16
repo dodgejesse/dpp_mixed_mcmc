@@ -23,11 +23,14 @@ def get_sampler_names():
                      'DPPSeqPostSigma001': 'DPP-rbf-sigma=0.001',
                      'DPPSeqPostSigma003': 'DPP-rbf-sigma=0.003',
                      'DPPSeqPostSigma004': 'DPP-rbf-sigma=0.004',
-                     'DPPPostVarSigmaSqrt2overN': 'k-DPP-RBF',}
+                     'DPPPostVarSigmaSqrt2overN': 'k-DPP-RBF',
+                     'DPPNsquaredOverD': 'DPP-rbf-sigma=k^2/d^3'
+    }
+    
     return sampler_names
 
 def get_measure_names():
-    measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy'}
+    measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy', 'unif_point':'distance from random point'}
     return measure_names
 
 
@@ -124,15 +127,15 @@ def get_one_plot_data(data, measure, d):
 
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
-    matplotlib.rcParams.update({'font.size':8})
-    fig = plt.figure(figsize=(9,3))
+    matplotlib.rcParams.update({'font.size':6})
+    fig = plt.figure(figsize=(10,10))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
     #             "DPPs are using an RBF kernel: DPP-rbf-narrow has variance 1/10, DPP-rbf-wide has variance d/2.", 
     #             fontsize=8)
 
     counter = 0
-    measures = ['discrep','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
+    measures = ['unif_point','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
     ds = get_ds()
     #ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
 
