@@ -74,13 +74,13 @@ def DPPSearchSigma(n,d):
 
         # check if the det is too small or large.
         # if it is, grow or shrink it. if it jumped over the good range, shrink the step size.
-        if cur_det < 10**-20:
+        if cur_det < 10**-25:
             det_too_small = True
             if det_too_big:
                 step_size = np.sqrt(step_size)
                 det_too_big = False
             cur_sigma = cur_sigma / step_size
-        elif cur_det > 10**-18:
+        elif cur_det > 10**-22:
             det_too_big = True
             if det_too_small:
                 step_size = np.sqrt(step_size)
@@ -116,7 +116,7 @@ def DPPSampler(n, d, clip_type=None,gamma=None, alpha=None, sigma=None):
     unfeat_B_Y, B_Y, L_Y, time =  dpp_mcmc_sampler.sample_k_disc_and_cont(sampler, dist, n, num_iters)
     if n > 1:
         print("from this dpp sample, with d={}, n={}:".format(d,n))
-        print gamma, np.linalg.det(L_Y)
+        print sigma, np.linalg.det(L_Y)
         print("")
     
     return B_Y
