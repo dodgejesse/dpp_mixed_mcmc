@@ -8,27 +8,28 @@ import sequentially_sample_post_var
 import scipy
 
 def get_samplers():
-    samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
-        #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
-        #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
-        #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-        #'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
-        #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
-        #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
-        #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
-        #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
-        #'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
-        #'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
-        #'DPPNsquaredNarrow': {'fn': dpp_rbf_unitcube.DPPNsquaredNarrow, 'color': 'm'}
-        #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
-        #'SobolSamplerHighD':{'fn': SobolSamplerHighD, 'color':'m'},
-        #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
-        'DPPNsquaredOverD': {'fn': dpp_rbf_unitcube.DPPNsquaredOverD, 'color': 'm'},
-        
-        
-        #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
-        #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2over2, 'color': 'm'},
-        #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
+    samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
+                #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
+                #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
+                #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
+                'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
+                #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
+                #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
+                #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
+                #'DPPVVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVVNarrow, 'color': 'm'},
+                #'DPPNNarrow': {'fn': dpp_rbf_unitcube.DPPNNarrow, 'color': 'm'},
+                #'DPPNNNarrow': {'fn': dpp_rbf_unitcube.DPPNNNarrow, 'color': 'm'}
+                #'DPPNsquaredNarrow': {'fn': dpp_rbf_unitcube.DPPNsquaredNarrow, 'color': 'm'}
+                #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
+                #'SobolSamplerHighD':{'fn': SobolSamplerHighD, 'color':'m'},
+                #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
+                #'DPPNsquaredOverD': {'fn': dpp_rbf_unitcube.DPPNsquaredOverD, 'color': 'm'},
+                'DPPSearchSigma': {'fn': dpp_rbf_unitcube.DPPSearchSigma, 'color': 'm'},
+                
+                
+                #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
+                #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2over2, 'color': 'm'},
+                #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
     }
     return samplers
 
@@ -39,7 +40,7 @@ def get_sigma():
 # returns the number of uniformly sampled points used when computing the average distance
 # to a uniformly sampled point
 def get_num_unif_eval():
-    return 1
+    return 1000
 
 def get_n_min():
     return 1
@@ -50,7 +51,7 @@ def get_n_max():
 def get_ns():
     n_max = get_n_max()
     n_min = get_n_min()
-    ns = [int(np.exp(x)) for x in np.linspace(np.log(n_min), np.log(n_max), 40)]
+    ns = [int(np.exp(x)) for x in np.linspace(np.log(n_min), np.log(n_max), 30)]
     ns = sorted(list(set(ns)))
     return ns
     
@@ -65,13 +66,13 @@ def get_eval_measures():
                      'l2_cntr':get_min_l2_norm_center, 
                      #'l1_cntr':get_min_l1_norm_center,
                      #'discrep':get_discrepency,
-                     #'unif_point':get_min_to_uniformly_sampled_point
+                     'unif_point':get_min_to_uniformly_sampled_point
                  }
 
     return eval_measures
 
 def get_num_samples():
-    return 1
+    return 200
 
 #if __name__ == "__main__":
 #    discrepancy.draw_many_samples()
@@ -126,7 +127,6 @@ def get_min_l1_norm_center(X):
 
 def get_min_to_uniformly_sampled_point(X):
     d = len(X[0])
-    import pdb; pdb.set_trace()
     unif_points = pickle.load(open("pickled_data/unif_samples_for_eval/sampler=uniform_n={}_dim={}".format(get_num_unif_eval(), d)))
 
     all_dists = scipy.spatial.distance.cdist(X, unif_points)

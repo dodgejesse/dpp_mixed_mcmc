@@ -9,23 +9,37 @@ from current_experiment import *
 
 
 
-ns = [25,50,75]
+ns = [5,25,50,75,100]
 ds = [1,3,5,7,9]
-determinants={}
+sigmas={}
 for d in ds:
-    determinants[d]={}
+    sigmas[d]={}
     for n in ns:
         
-        determinants[d][n] = []
+        
         #determinants[d][n] = 1.0*(n*n)/(d*d*d)
-        for i in range(1):
-            determinants[d][n].append(dpp_rbf_unitcube.DPPNsquaredOverD(n,d)[1])
-            print("done with d={}, n={}".format(d,n))
+        #for i in range(1):
+            
+        sigmas[d][n] = dpp_rbf_unitcube.DPPSearchSigma(n,d)
+        #print("done with d={}, n={}".format(d,n))
+print ns
+for d in ds:
+    print d, [round(sigmas[d][n],5) for n in ns]
+
+noverd = {}
+for d in ds:
+    noverd[d] = {}
+    for n in ns:
+        noverd[d][n] = 1.0*(n**2)/(d**3)
+        noverd[d][n] = (1/2.0)*1.0/np.sqrt(noverd[d][n])
 
 for d in ds:
-    #print determinants[d]
-    for n in ns:
-        print "d={}, n={}".format(d, n), determinants[d][n], np.mean(determinants[d][n]), np.var(determinants[d][n])
+    print d, [round(noverd[d][n],5) for n in ns]
+
+#for d in ds:
+#    #print determinants[d]
+#    for n in ns:
+#        print "d={}, n={}".format(d, n), determinants[d][n], np.mean(determinants[d][n]), np.var(determinants[d][n])
 
 exit()
 

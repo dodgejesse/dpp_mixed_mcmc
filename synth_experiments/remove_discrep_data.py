@@ -50,31 +50,32 @@ def remove_errors(samplers, eval_measures, ns, ds):
 
 
 samplers = {#'SobolSampler',
-	    #'RecurrenceSampler',
-	    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
-	    #'DPPnsquared',#: {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-	    #'UniformSampler',
-            #'DPPNarrow',
-            #'DPPVNarrow',
-            #'DPPVVNarrow',
-            #'DPPVVVNarrow',
-            #'DPPNNarrow',
-            #'DPPNNNarrow'
-            #'DPPNsquaredNarrow',
-            'DPPPostVarSigmaSqrt2overN',
-            #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
+    #'RecurrenceSampler',
+    #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
+    #'DPPnsquared',#: {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
+    #'UniformSampler',
+    #'DPPNarrow',
+    #'DPPVNarrow',
+    #'DPPVVNarrow',
+    #'DPPVVVNarrow',
+    #'DPPNNarrow',
+    #'DPPNNNarrow'
+    #'DPPNsquaredNarrow',
+    #'DPPPostVarSigmaSqrt2overN',
+    'DPPNsquaredOverD'
+    #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
     
     }
 
-eval_measures = ['l2', 'l2_cntr','discrep']
+eval_measures = current_experiment.get_eval_measures() #['l2', 'l2_cntr','discrep']
 
 
 
 
 ns = current_experiment.get_ns()
-ns = [1]
-ds = [1]#,2,3,4,5]
+ns = 'all' #[1]
+ds = 'all' #[1]#,2,3,4,5]
 
-import pdb; pdb.set_trace()
+#import pdb; pdb.set_trace()
 #compute_errors(samplers, eval_measures, ns, ds)
 remove_errors(samplers, eval_measures, ns, ds)
