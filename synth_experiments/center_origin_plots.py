@@ -24,7 +24,8 @@ def get_sampler_names():
                      'DPPSeqPostSigma003': 'DPP-rbf-sigma=0.003',
                      'DPPSeqPostSigma004': 'DPP-rbf-sigma=0.004',
                      'DPPPostVarSigmaSqrt2overN': 'k-DPP-RBF',
-                     'DPPNsquaredOverD': 'DPP-rbf-sigma=k^2/d^3'
+                     'DPPNsquaredOverD': 'DPP-rbf-sigma=k^2/d^3',
+                     'DPPSearchSigma' : 'DPP-rbf-search-sigma'
     }
     
     return sampler_names

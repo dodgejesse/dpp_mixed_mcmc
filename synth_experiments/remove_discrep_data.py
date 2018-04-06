@@ -31,7 +31,8 @@ def remove_errors(samplers, eval_measures, ns, ds):
                                         num_del = len(cur_evals[d][n])
                                         del cur_evals[d][n]
                                         print('deleted {}, eval={}, d={}, n={}. num_deleted={}'.format(sampler, eval_measure, d, n, num_del))
-                                if len(eval_measure[d]) == 0:
+
+                                if len(cur_evals[d]) == 0:
                                         del cur_evals[d]
                                         print('deleted {}, eval={}, d={}'.format(sampler, eval_measure, d))
 
@@ -62,13 +63,12 @@ samplers = {#'SobolSampler',
     #'DPPNNNarrow'
     #'DPPNsquaredNarrow',
     #'DPPPostVarSigmaSqrt2overN',
-    'DPPNsquaredOverD'
+    #'DPPNsquaredOverD'
     #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
-    
+    'DPPSearchSigma'
     }
 
 eval_measures = current_experiment.get_eval_measures() #['l2', 'l2_cntr','discrep']
-
 
 
 

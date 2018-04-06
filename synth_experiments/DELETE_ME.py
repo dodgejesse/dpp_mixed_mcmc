@@ -11,6 +11,10 @@ from current_experiment import *
 
 ns = [5,25,50,75]
 ds = [1,3,5,7,9]
+
+ns = [3]
+ds = [2]
+
 sigmas={}
 for d in ds:
     sigmas[d]={}
