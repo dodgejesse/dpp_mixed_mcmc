@@ -10,7 +10,7 @@ import discrepancy
 
 
 # code written to test dispersion.py, specifically the code which reflects points across all faces of the unit cube.
-
+# place i left off: somehow the dispersion of the sobol samples has zero (or very small) variance. wtf?
 
 
 def main():
@@ -21,14 +21,31 @@ def main():
     dispersions = {}
     d = 2
     sampler = 'SobolSampler'
+
     for n in ns:
+        n=4
         dispersions[n] = []
-        for example_num in range(30):
+        print('n = {}'.format(n))
+        for example_num in range(200):
+            
+            # for Sobol points, the bad one is:
+            #n=5
+            #example_num = 120
+            #example_num = 23
+            #example_num = 160
+            #print example_num
             cur_sample = dispersion.get_sample(d=d, sampler=sampler, n=n, snum='{}_1'.format(example_num))
+            #print(cur_sample)
+            
+            print cur_sample
+
             
             vor = dispersion.bounded_voronoi(cur_sample)
-            fail_dists += unit_tests_bounded_vor(vor)
+
+            #fail_dists += unit_tests_bounded_vor(vor)
             dispersions[n].append(dispersion.compute_dispersion(vor))
+
+            print dispersion.compute_dispersion(vor)
 
             #if n < d + 2:
             #    continue
@@ -36,8 +53,8 @@ def main():
             #vor = spatial.Voronoi(cur_sample)
             #print('took {} seconds'.format(time.time() - start_time))
 
-            
-    print fail_dists
+        break
+    #print fail_dists
     
     for n in ns:
         avg = np.average(dispersions[n])

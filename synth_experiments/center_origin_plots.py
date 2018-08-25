@@ -31,7 +31,7 @@ def get_sampler_names():
     return sampler_names
 
 def get_measure_names():
-    measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy', 'unif_point':'distance from random point'}
+    measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy', 'unif_point':'distance from random point', 'dispersion': 'dispersion'}
     return measure_names
 
 
@@ -136,7 +136,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     #             fontsize=8)
 
     counter = 0
-    measures = ['unif_point','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
+    measures = ['dispersion']#['unif_point','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
     ds = get_ds()
     #ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
 
@@ -186,7 +186,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/icml_2018/' + get_filename(ds, measures, samplers, min_samp_num) + '.pdf'
+    out_fname = 'plots/iclr_2019/' + get_filename(ds, measures, samplers, min_samp_num) + '.pdf'
     plt.savefig(out_fname)
     print("saving to {}".format(out_fname))
 

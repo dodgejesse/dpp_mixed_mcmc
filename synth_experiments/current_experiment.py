@@ -6,6 +6,7 @@ import sobol_seq as sobol
 import functools
 import sequentially_sample_post_var
 import scipy
+import dispersion
 
 def get_samplers():
     samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
@@ -24,7 +25,7 @@ def get_samplers():
                 #'SobolSamplerHighD':{'fn': SobolSamplerHighD, 'color':'m'},
                 #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
                 #'DPPNsquaredOverD': {'fn': dpp_rbf_unitcube.DPPNsquaredOverD, 'color': 'm'},
-                'DPPSearchSigma': {'fn': dpp_rbf_unitcube.DPPSearchSigma, 'color': 'm'},
+                #'DPPSearchSigma': {'fn': dpp_rbf_unitcube.DPPSearchSigma, 'color': 'm'},
                 
                 
                 #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
@@ -56,17 +57,18 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [1,3,5,7]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [2]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 
 def get_eval_measures():
-    eval_measures = {'l2':get_min_l2_norm, 
+    eval_measures = {#'l2':get_min_l2_norm, 
                      #'l1':get_min_l1_norm, 
-                     'l2_cntr':get_min_l2_norm_center, 
+                     #'l2_cntr':get_min_l2_norm_center, 
                      #'l1_cntr':get_min_l1_norm_center,
                      #'discrep':get_discrepency,
-                     'unif_point':get_min_to_uniformly_sampled_point
+                     #'unif_point':get_min_to_uniformly_sampled_point
+                     'dispersion':get_dispersion,
                  }
 
     return eval_measures
@@ -95,6 +97,11 @@ def get_discrepency(X):
 		worse_value = max(worse_value, abs(p-p_hat-1./len(X)))
 	return worse_value
 
+# computes a bounded voronoi diagram, 
+# then returns the smallest distance between the points X and the voronoi vertices
+def get_dispersion(X):
+    vor = dispersion.bounded_voronoi(X)
+    return dispersion.compute_dispersion(vor)
 
 def get_min_norm(X, order):
 	return min(np.linalg.norm(X, ord=order, axis=1))
@@ -125,7 +132,7 @@ def get_min_l1_norm_center(X):
 	return get_min_norm(X-center, 1)
 
 
-def get_min_to_uniformly_sampled_point(X):
+def get_avg_min_to_uniformly_sampled_point(X):
     d = len(X[0])
     unif_points = pickle.load(open("pickled_data/unif_samples_for_eval/sampler=uniform_n={}_dim={}".format(get_num_unif_eval(), d)))
 
@@ -134,6 +141,17 @@ def get_min_to_uniformly_sampled_point(X):
     assert len(min_dists) == len(unif_points)
     avg_min_dist = np.average(min_dists)
     return avg_min_dist
+
+
+def get_min_to_uniformly_sampled_point(X):
+    d = len(X[0])
+    unif_points = pickle.load(open("pickled_data/unif_samples_for_eval/sampler=uniform_n={}_dim={}".format(get_num_unif_eval(), d)))
+
+    all_dists = scipy.spatial.distance.cdist(X, unif_points)
+    min_dists = np.min(all_dists, axis=0)
+    assert len(min_dists) == len(unif_points)
+    min_min_dist = np.min(min_dists)
+    return min_min_dist
     
 
 ############################ the samplers ############################

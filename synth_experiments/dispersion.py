@@ -39,11 +39,11 @@ def main():
     
 def get_sample(d='4', sampler='UniformSampler', n='88', snum='3_1'):
     in_file_name = './pickled_data/dim={}/sampler={}_n={}_d={}_samplenum={}'.format(d, sampler, n,d, snum)
-    print('reading data from {}'.format(in_file_name))
+    #print('reading data from {}'.format(in_file_name))
 
     pkl_file = open(in_file_name)
     cur_sample = pickle.load(pkl_file)
-    print('data read.')
+    #print('data read.')
     return cur_sample
 
 
@@ -154,7 +154,9 @@ def bounded_voronoi(points):
     # Compute Voronoi
     #sys.stdout.write("starting Voronoi diagram computation... ")
     #vor_start_time = time.time()
-    vor = sp.spatial.Voronoi(all_points)
+    qhull_options = 'Qbb Qc Qz Qx Q12' if len(points[0]) > 4 else 'Qbb Qc Qz Q12'
+    vor = sp.spatial.Voronoi(all_points, qhull_options=qhull_options)
+    #vor = sp.spatial.Voronoi(all_points)
     #sys.stdout.write("done! took {} seconds.\n".format(time.time() - vor_start_time))
 
 
