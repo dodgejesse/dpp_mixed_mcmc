@@ -152,41 +152,14 @@ def bounded_voronoi(points):
         all_points = np.append(all_points, new_points_up, axis=0)
 
     # Compute Voronoi
-    sys.stdout.write("starting Voronoi diagram computation... ")
-    vor_start_time = time.time()
+    #sys.stdout.write("starting Voronoi diagram computation... ")
+    #vor_start_time = time.time()
     vor = sp.spatial.Voronoi(all_points)
-    sys.stdout.write("done! took {} seconds.\n".format(time.time() - vor_start_time))
-    
-    # Filter regions
-    fil_reg_start_time = time.time()
-    sys.stdout.write('filtering the {} regions... '.format(len(vor.regions)))
-    regions = []
-    for region in vor.regions:
-        
-        flag = True
-        for index in region:
-            if index == -1:
-                flag = False
-                break
-            else:
-                cur_example_in_unit_cube = True
-                for d in range(len(vor.vertices[index])):
-                    if -eps > vor.vertices[index][d] or vor.vertices[index][d] > 1 + eps:
-                        flag = False
-                        break
-        if region != [] and flag:
-            regions.append(region)
-    sys.stdout.write('done! took {} seconds.\n'.format(time.time() - fil_reg_start_time))
+    #sys.stdout.write("done! took {} seconds.\n".format(time.time() - vor_start_time))
 
 
-
-    vor.filtered_points = points
-    vor.filtered_regions = regions
-    
-    points_start_time = time.time()
-    sys.stdout.write('filtering the {} points... '.format(len(vor.vertices)))
-
-
+    #points_start_time = time.time()
+    #sys.stdout.write('filtering the {} points... '.format(len(vor.vertices)))
     vor.filtered_vertices = []
     for vertex in vor.vertices:
         vertex_in_cube = True
@@ -196,8 +169,9 @@ def bounded_voronoi(points):
         if vertex_in_cube:
             vor.filtered_vertices.append(vertex)
 
-    sys.stdout.write('done! took {} seconds.\n'.format(time.time() - points_start_time))
+    #sys.stdout.write('done! took {} seconds.\n'.format(time.time() - points_start_time))
     vor.filtered_vertices = np.array(vor.filtered_vertices)
+    vor.filtered_points = points
 
     return vor
 
@@ -220,7 +194,7 @@ def compute_dispersion(vor):
 
 
     #print('dispersion:')
-    return min(min_dists[0])
+    return max(min_dists[0])
 
 
 def print_bounded_ddim_vor(vor):
