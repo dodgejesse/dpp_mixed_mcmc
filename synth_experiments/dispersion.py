@@ -4,12 +4,22 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import time
+
+
+# notes: 
+# current implementation (reflecting points across all faces of the unit cube) works up to about d=6, n=50.
+# without reflecting, can build voronoi diagram up to about d=10, n=50.
+# if we need to get up to d=10, we can try doing something like:
+# https://stackoverflow.com/questions/36063533/clipping-a-voronoi-diagram-python
 
 
 def main():
-    cur_sample = get_sample()
+    cur_sample = get_sample(d=2, n=29, snum='63_1')
     
-    #vor = spatial.Voronoi(cur_sample, qhull_options='Qbb Qc Qz')
+    start_time = time.time()
+    vor = spatial.Voronoi(cur_sample)
+    print('took {} seconds'.format(time.time() - start_time))
     #print_vor_attribs(vor)
 
     #bounded_lines = get_bounded_lines(vor)
@@ -19,22 +29,21 @@ def main():
 
 
     vor = bounded_voronoi(cur_sample)
+    #print vor.vertices
+    #print_vor(vor)
     #compute_dispersion(vor)
-    unit_tests_bounded_vor(vor)
+    #unit_tests_bounded_vor(vor)
     #print_bounded_ddim_vor(vor)
-    #print_bounded_vor(vor)
+    print_bounded_vor(vor)
     
     
-def get_sample():
-    d = '4'
-    sampler = 'UniformSampler'
-    n = '5'
-    snum = '4_1'
+def get_sample(d='4', sampler='UniformSampler', n='88', snum='3_1'):
     in_file_name = './pickled_data/dim={}/sampler={}_n={}_d={}_samplenum={}'.format(d, sampler, n,d, snum)
-    print in_file_name
+    print('reading data from {}'.format(in_file_name))
 
     pkl_file = open(in_file_name)
     cur_sample = pickle.load(pkl_file)
+    print('data read.')
     return cur_sample
 
 
@@ -120,13 +129,15 @@ def print_vor_attribs(vor):
         print('')
     
 
+def get_epsilon(d):
+    return sys.float_info.epsilon * d * 1000
 
 
 # this function taken from 
 # https://stackoverflow.com/questions/28665491/getting-a-bounded-polygon-coordinates-from-voronoi-cells#
 # and adjusted to work with dimensions other than 2
 def bounded_voronoi(points):
-    eps = sys.float_info.epsilon * len(points[0]) * 10
+    eps = get_epsilon(len(points[0]))
 
     # Mirror points
     all_points = np.copy(points)
@@ -141,29 +152,17 @@ def bounded_voronoi(points):
         all_points = np.append(all_points, new_points_up, axis=0)
 
     # Compute Voronoi
+    sys.stdout.write("starting Voronoi diagram computation... ")
+    vor_start_time = time.time()
     vor = sp.spatial.Voronoi(all_points)
+    sys.stdout.write("done! took {} seconds.\n".format(time.time() - vor_start_time))
+    
     # Filter regions
+    fil_reg_start_time = time.time()
+    sys.stdout.write('filtering the {} regions... '.format(len(vor.regions)))
     regions = []
     for region in vor.regions:
         
-
-        #print np.where(np.all(np.round(vor.vertices, 1) == [1,1,1], axis=1))
-        # [1,1,1] is index 48
-        
-        #print(48 in region)
-        
-        #if 48 in region:
-        #    print region
-        #    for index in region:
-        #        
-        #        in_unit_cube = True
-        #        for d in range(len(vor.vertices[index])):
-        #            if -eps > vor.vertices[index][d] or vor.vertices[index][d] > 1 + eps:
-        #                in_unit_cube = False
-        #        print vor.vertices[index], in_unit_cube, eps
-        #    
-        #    print('')
-
         flag = True
         for index in region:
             if index == -1:
@@ -177,8 +176,16 @@ def bounded_voronoi(points):
                         break
         if region != [] and flag:
             regions.append(region)
+    sys.stdout.write('done! took {} seconds.\n'.format(time.time() - fil_reg_start_time))
+
+
+
     vor.filtered_points = points
     vor.filtered_regions = regions
+    
+    points_start_time = time.time()
+    sys.stdout.write('filtering the {} points... '.format(len(vor.vertices)))
+
 
     vor.filtered_vertices = []
     for vertex in vor.vertices:
@@ -189,35 +196,31 @@ def bounded_voronoi(points):
         if vertex_in_cube:
             vor.filtered_vertices.append(vertex)
 
+    sys.stdout.write('done! took {} seconds.\n'.format(time.time() - points_start_time))
     vor.filtered_vertices = np.array(vor.filtered_vertices)
 
     return vor
 
 
 def compute_dispersion(vor):
-    unique_vertex_indices = set()
-    for region in vor.filtered_regions:
-        for vertex in region:
-            unique_vertex_indices.add(vertex)
 
-    vs = vor.vertices[list(unique_vertex_indices)]
-    
-    tree = spatial.KDTree(vs)
+    tree = spatial.KDTree(vor.filtered_vertices)
 
-    rounded = np.round(tree.data,3)
-    print(rounded)
+    #rounded = np.round(tree.data,3)
+    #print(rounded)
 
-    rounded.sort()
-    print(rounded)
+    #rounded.sort()
+    #print(rounded)
     
-    print('')
-    print(vor.filtered_points)
+    #print('')
+    #print(vor.filtered_points)
     
-    print(tree.query(vor.filtered_points))
+    #print(tree.query(vor.filtered_points))
     min_dists = tree.query(vor.filtered_points)
-    
-    print('dispersion:')
-    print(min(min_dists[0]))
+
+
+    #print('dispersion:')
+    return min(min_dists[0])
 
 
 def print_bounded_ddim_vor(vor):
@@ -261,63 +264,6 @@ def print_bounded_vor(vor):
     plt.show()
 
 
-
-def unit_tests_bounded_vor(vor):
-    d = len(vor.vertices[0])
-    eps = sys.float_info.epsilon * d * 10
-
-
-    # check that vor.filtered_vertices and vor.filtered_regions have the same vertices
-    unique_vertex_indices = set()
-    for region in vor.filtered_regions:
-        for vertex in region:
-            unique_vertex_indices.add(vertex)
-
-    vs = vor.vertices[list(unique_vertex_indices)]
-
-    assert len(vs) == len(vor.filtered_vertices)
-    
-    for vertex in vor.filtered_vertices:
-        match_flag = False
-        for vertex_2 in vs:
-            if np.all(vertex_2 == vertex):
-                match_flag = True
-        assert match_flag
-            
-
-
-
-    # check to make sure there's one vertex in each corner
-    import itertools
-    cube_corners = list(itertools.product('10', repeat=d))
-    cube_corners = np.array([list(map(int, corner)) for corner in cube_corners])
-    print cube_corners
-    print(len(cube_corners))
-    
-    for corner in cube_corners:
-        match = False
-        for vertex in vor.filtered_vertices:
-            print np.all(abs(vertex - corner) < eps)
-            if np.all(abs(vertex - corner) < eps):
-                # already found a match! can't have two!
-                assert not match    
-
-                match = True
-        assert match
-            
-        print('')
-
-    print('success!')
-
-
-    #print np.mgrid[tuple(slice(0, 2, 1) for _ in range(d))]
-
-
-
-
-
-
-    return
 
 
 
