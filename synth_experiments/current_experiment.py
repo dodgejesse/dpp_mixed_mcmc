@@ -9,11 +9,11 @@ import scipy
 import dispersion
 
 def get_samplers():
-    samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
+    samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
                 #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
-                #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
+                'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
                 #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-                'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
+                #'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
                 #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
                 #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
                 #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
@@ -57,7 +57,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [2]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 
@@ -74,7 +74,7 @@ def get_eval_measures():
     return eval_measures
 
 def get_num_samples():
-    return 200
+    return 1
 
 #if __name__ == "__main__":
 #    discrepancy.draw_many_samples()

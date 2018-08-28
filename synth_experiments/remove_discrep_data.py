@@ -65,8 +65,10 @@ samplers = {#'SobolSampler',
     #'DPPPostVarSigmaSqrt2overN',
     #'DPPNsquaredOverD'
     #'DPPClipped': {'fn': dpp_rbf_unitcube.DPPClippedSampler, 'color': 'm'}
-    'DPPSearchSigma'
+    #'DPPSearchSigma'
     }
+
+samplers = current_experiment.get_samplers()
 
 eval_measures = current_experiment.get_eval_measures() #['l2', 'l2_cntr','discrep']
 

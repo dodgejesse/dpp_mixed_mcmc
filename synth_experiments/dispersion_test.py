@@ -19,14 +19,15 @@ def main():
 
     fail_dists = []
     dispersions = {}
-    d = 2
+    d = 1
     sampler = 'SobolSampler'
 
+
     for n in ns:
-        n=4
+        #n=4
         dispersions[n] = []
         print('n = {}'.format(n))
-        for example_num in range(200):
+        for example_num in range(1):
             
             # for Sobol points, the bad one is:
             #n=5
@@ -36,6 +37,8 @@ def main():
             #print example_num
             cur_sample = dispersion.get_sample(d=d, sampler=sampler, n=n, snum='{}_1'.format(example_num))
             #print(cur_sample)
+
+            
             
             print cur_sample
 
@@ -47,14 +50,21 @@ def main():
 
             print dispersion.compute_dispersion(vor)
 
+            import pdb; pdb.set_trace()
+
+            #dispersion.print_bounded_vor(vor)
+            #sys.exit()
+
             #if n < d + 2:
             #    continue
             #start_time = time.time()
             #vor = spatial.Voronoi(cur_sample)
             #print('took {} seconds'.format(time.time() - start_time))
 
-        break
+
     #print fail_dists
+
+    unique_dispersions = set([])
     
     for n in ns:
         avg = np.average(dispersions[n])

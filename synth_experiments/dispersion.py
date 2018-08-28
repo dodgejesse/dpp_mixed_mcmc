@@ -81,10 +81,6 @@ def get_unbounded_lines(vor):
 
 def print_vor(vor):
     spatial.voronoi_plot_2d(vor)
-    #plt.ylim((-.5,1))
-    #plt.xlim((-.5,1))
-
-    #plt.savefig('/home/ec2-user/scratch/plots/voronoi_debug.pdf')
     plt.show()
 
 
@@ -133,10 +129,24 @@ def get_epsilon(d):
     return sys.float_info.epsilon * d * 1000
 
 
+def one_dim_vor(unsorted_points):
+    points = sorted(unsorted_points)
+    #print points
+    distances = []
+    distances.append(points[0][0] / 2.0)
+    for i in range(len(points)):
+        cur_point = points[i][0]
+        next_point = points[i+1][0] if i+1 < len(points) else 1.0
+        distances.append((next_point - cur_point)/2.0)
+    return distances
+
+
 # this function taken from 
 # https://stackoverflow.com/questions/28665491/getting-a-bounded-polygon-coordinates-from-voronoi-cells#
 # and adjusted to work with dimensions other than 2
 def bounded_voronoi(points):
+    if len(points[0]) == 1:
+        return one_dim_vor(points)
     eps = get_epsilon(len(points[0]))
 
     # Mirror points
@@ -180,23 +190,15 @@ def bounded_voronoi(points):
 
 def compute_dispersion(vor):
 
-    tree = spatial.KDTree(vor.filtered_vertices)
+    # if points are 1d, this is a list of distances between points
+    if type(vor) == type([]):
+        return max(vor)
+    # if points > 1d, this is a voronoi diagram
+    else:
+        tree = spatial.KDTree(vor.filtered_points)
+        min_dists = tree.query(vor.filtered_vertices)
 
-    #rounded = np.round(tree.data,3)
-    #print(rounded)
-
-    #rounded.sort()
-    #print(rounded)
-    
-    #print('')
-    #print(vor.filtered_points)
-    
-    #print(tree.query(vor.filtered_points))
-    min_dists = tree.query(vor.filtered_points)
-
-
-    #print('dispersion:')
-    return max(min_dists[0])
+        return max(min_dists[0])
 
 
 def print_bounded_ddim_vor(vor):
@@ -222,7 +224,34 @@ def print_bounded_ddim_vor(vor):
     print(unique_vertices)
 
 
+def filter_regions(vor):
+    eps = get_epsilon(len(vor.points[0]))
+    # Filter regions
+    fil_reg_start_time = time.time()
+    sys.stdout.write('filtering the {} regions... '.format(len(vor.regions)))
+    regions = []
+    for region in vor.regions:
+        
+        flag = True
+        for index in region:
+            if index == -1:
+                flag = False
+                break
+            else:
+                cur_example_in_unit_cube = True
+                for d in range(len(vor.vertices[index])):
+                    if -eps > vor.vertices[index][d] or vor.vertices[index][d] > 1 + eps:
+                        flag = False
+                        break
+        if region != [] and flag:
+            regions.append(region)
+    sys.stdout.write('done! took {} seconds.\n'.format(time.time() - fil_reg_start_time))
+    vor.filtered_regions = regions
+
+
+
 def print_bounded_vor(vor):
+    filter_regions(vor)
     fig = plt.figure()
     ax = fig.gca()
     # Plot initial points
@@ -235,6 +264,42 @@ def print_bounded_vor(vor):
     for region in vor.filtered_regions:
         vertices = vor.vertices[region + [region[0]], :]
         ax.plot(vertices[:, 0], vertices[:, 1], 'k-')
+
+    # to print the line which is shortest
+    tree = spatial.KDTree(vor.filtered_points)
+    min_dists = tree.query(vor.filtered_vertices)
+
+    
+
+    print('')
+    print('minimum distances:')
+    print min_dists
+    print('')
+    print('tree.data:')
+    print tree.data
+    print('')
+    print('vor.filtered_vertices')
+    print(vor.filtered_vertices)
+    
+
+    max_min_dist = -1
+    index = 0.1
+    for i in range(len(min_dists[0])):
+        if min_dists[0][i] > max_min_dist:
+            max_min_dist = min_dists[0][i]
+            index = i
+    print('largest found distance, and index:')
+    print(max_min_dist, index)
+    first_point = vor.filtered_points[min_dists[1][index]]
+    second_point = vor.filtered_vertices[index]
+    x_vals = [first_point[0], second_point[0]]
+    y_vals = [first_point[1], second_point[1]]
+
+    #x_vals = [vor.filtered_points[min_dists[1][index]][0], vor.filtered_vertices[index][0]]
+    #y_vals = [vor.filtered_points[min_dists[1][index]][1], vor.filtered_vertices[index][1]]
+    ax.plot(x_vals, y_vals, 'r')
+    #print('dispersion:')
+    
     ax.set_xlim([-0.1, 1.1])
     ax.set_ylim([-0.1, 1.1])
     plt.show()
