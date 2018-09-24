@@ -9,11 +9,11 @@ import scipy
 import dispersion
 
 def get_samplers():
-    samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
+    samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
                 #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
-                'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
+                #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
                 #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-                #'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
+                'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
                 #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
                 #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
                 #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
@@ -29,7 +29,12 @@ def get_samplers():
                 
                 
                 #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
-                #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2over2, 'color': 'm'},
+                #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overN, 'color': 'm'},
+                #'DPPPostVarSigmaSqrt2overND': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overND, 'color': 'k'},
+                #'DPPPostVarSigmaSqrt2overNtosqrtD': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overNtosqrtD, 'color': 'y'},
+                #'DPPPostVarSigmaDover45': {'fn':sequentially_sample_post_var.one_sample_sigma_dover45, 'color': 'c'},
+                #'DPPPostVarSearchSigma': {'fn':sequentially_sample_post_var.one_sample_search_sigma, 'color': 'c'},
+                'DPPPostVarSearchSigmaBySampling': {'fn':sequentially_sample_post_var.one_sample_search_sigma_by_sampling, 'color': 'm'},
                 #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
     }
     return samplers
@@ -47,7 +52,7 @@ def get_n_min():
     return 3
 
 def get_n_max():
-    return 100
+    return 500
 
 def get_ns():
     n_max = get_n_max()
@@ -57,24 +62,26 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [1]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [2]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 
 def get_eval_measures():
-    eval_measures = {#'l2':get_min_l2_norm, 
-                     #'l1':get_min_l1_norm, 
-                     #'l2_cntr':get_min_l2_norm_center, 
-                     #'l1_cntr':get_min_l1_norm_center,
-                     #'discrep':get_discrepency,
-                     #'unif_point':get_min_to_uniformly_sampled_point
-                     'dispersion':get_dispersion,
-                 }
+    eval_measures = {
+        #'l2':get_min_l2_norm, 
+        #'l1':get_min_l1_norm, 
+        #'l2_cntr':get_min_l2_norm_center, 
+        #'l1_cntr':get_min_l1_norm_center,
+        #'discrep':get_discrepency,
+        #'unif_point':get_min_to_uniformly_sampled_point
+        'dispersion':get_dispersion,
+        #'projected_1d_dispersion':get_projected_1d_dispersion,
+    }
 
     return eval_measures
 
 def get_num_samples():
-    return 1
+    return 100
 
 #if __name__ == "__main__":
 #    discrepancy.draw_many_samples()
@@ -102,6 +109,10 @@ def get_discrepency(X):
 def get_dispersion(X):
     vor = dispersion.bounded_voronoi(X)
     return dispersion.compute_dispersion(vor)
+
+def get_projected_1d_dispersion(X):
+    return get_dispersion(np.array([X[:,0]]).T)
+    
 
 def get_min_norm(X, order):
 	return min(np.linalg.norm(X, ord=order, axis=1))

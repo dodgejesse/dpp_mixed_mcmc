@@ -4,9 +4,96 @@ import zero_one_cube_unif_sampler
 import numpy as np
 import dpp_mcmc_sampler
 from current_experiment import *
+import dispersion
+import time
+import sequentially_sample_post_var
 
 
 
+
+
+
+print get_ns()
+exit()
+
+def load_and_print_searched_sigmas():
+    import pickle
+    file_loc = 'pickled_data/searched_sigma/DPPPostVarSearchSigmaBySampling'
+    sigmas = pickle.load(open(file_loc))
+    for n in sorted(sigmas[1]):
+        
+        print '{}: {}, {}'.format(n, [round(x,5) for x in sigmas[1][n]], round(2**.5/n,5))
+    exit()
+
+
+load_and_print_searched_sigmas()
+
+
+
+sequentially_sample_post_var.many_samples_search_sigma()
+exit()
+
+
+
+
+
+num_disps = 0
+avg_disps = 0
+
+ns = get_ns()
+ds = get_ds()
+ns = [100]
+for d in ds:
+    valid_ns = []
+    for n in ns:
+        #sigma = np.sqrt(2.0)/(n)
+        
+        #print('{}: {},'.format(n,sequentially_sample_post_var.find_largest_sigma(n,d)))
+        while True:
+
+            
+
+            #sequentially_sample_post_var.draw_many_samples_search_sigma(n,d)
+            sequentially_sample_post_var.main(d,n,0.25, '')
+
+            continue
+            
+            
+
+
+
+            #sigma = sigma / 10
+            #sigma = 1.41421356237e-35
+            
+            sigma = d**0.5/12
+            sigma = sigma * 1000
+            
+            #gamma = .5/(sigma*sigma)
+            #kernel_min_val = np.exp(-gamma*d)
+            #print kernel_min_val
+
+            
+            
+
+            cur_sample = sequentially_sample_post_var.main(d, n, sigma, '')
+            vor = dispersion.bounded_voronoi(cur_sample)
+            cur_disp = dispersion.compute_dispersion(vor)
+            
+            avg_disps = (avg_disps * num_disps + cur_disp) / (num_disps + 1)
+            num_disps += 1
+
+            print avg_disps
+
+            
+
+            
+        
+
+
+
+
+
+exit()
 
 
 ns = [5,25,50,75]

@@ -12,7 +12,7 @@ import time
 # without reflecting, can build voronoi diagram up to about d=10, n=50.
 # if we need to get up to d=10, we can try doing something like:
 # https://stackoverflow.com/questions/36063533/clipping-a-voronoi-diagram-python
-
+# also, discrepancy can be computed in less than a second when d=2 up to n=500
 
 def main():
     cur_sample = get_sample(d=2, n=29, snum='63_1')
@@ -20,115 +20,25 @@ def main():
     start_time = time.time()
     vor = spatial.Voronoi(cur_sample)
     print('took {} seconds'.format(time.time() - start_time))
-    #print_vor_attribs(vor)
-
-    #bounded_lines = get_bounded_lines(vor)
-    #unbounded_lines = get_unbounded_lines(vor)
-    #print_lines(bounded_lines, unbounded_lines)
-    #print_vor(vor)
-
 
     vor = bounded_voronoi(cur_sample)
-    #print vor.vertices
-    #print_vor(vor)
-    #compute_dispersion(vor)
-    #unit_tests_bounded_vor(vor)
-    #print_bounded_ddim_vor(vor)
     print_bounded_vor(vor)
     
     
+# loads a sample from disk, usually for debugging
 def get_sample(d='4', sampler='UniformSampler', n='88', snum='3_1'):
     in_file_name = './pickled_data/dim={}/sampler={}_n={}_d={}_samplenum={}'.format(d, sampler, n,d, snum)
-    #print('reading data from {}'.format(in_file_name))
 
     pkl_file = open(in_file_name)
     cur_sample = pickle.load(pkl_file)
-    #print('data read.')
     return cur_sample
 
-
-def get_bounded_lines(vor):
-    line_segments = []
-    for simplex in vor.ridge_vertices:
-        simplex = np.asarray(simplex)
-        if np.all(simplex >= 0):
-            line_segments.append([(x, y) for x, y in vor.vertices[simplex]])
-
-    return line_segments
-
-
-def get_unbounded_lines(vor):
-    line_segments = []
-
-    center = vor.points.mean(axis=0)
-    for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
-        simplex = np.asarray(simplex)
-        if np.any(simplex < 0):
-            i = simplex[simplex >= 0][0]  # finite end Voronoi vertex
-
-            t = vor.points[pointidx[1]] - vor.points[pointidx[0]]  # tangent
-            t /= np.linalg.norm(t)
-            n = np.array([-t[1], t[0]])  # normal
-
-            midpoint = vor.points[pointidx].mean(axis=0)
-            direction = np.sign(np.dot(midpoint - center, n)) * n
-            far_point = vor.vertices[i] + direction * vor.points.ptp(axis=0).max()
-
-            line_segments.append([(vor.vertices[i, 0], vor.vertices[i, 1]),
-                                  (far_point[0], far_point[1])])
-    return line_segments
     
-
-def print_vor(vor):
-    spatial.voronoi_plot_2d(vor)
-    plt.show()
-
-
-def print_lines(bounded_lines, unbounded_lines):
-    print('')
-    print('bounded_lines')
-    for line in bounded_lines:
-        print(line)
-
-    print('')
-    print('unbounded_lines')
-    print(unbounded_lines)
-    
-
-def print_vor_attribs(vor):
-
-    print('')
-    print('the points')
-    print(vor.points)
-
-    print vor
-    print(vor.min_bound)
-    print(vor.max_bound)
-    #sys.exit()
-
-    print('')
-    print('the vertices')
-    print(vor.vertices)
-
-    print('')
-    print('ridge points')
-    print(vor.ridge_points)
-    
-    print('')
-    print('ridge vertices')
-    print(vor.ridge_vertices)
-
-    print('print zip')
-    for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
-        print pointidx
-        print simplex
-        print('')
-    
-
+# epsilon used for bounding a voronoi diagram within the unit cube.
 def get_epsilon(d):
     return sys.float_info.epsilon * d * 1000
 
-
+# the distances between the points in 1-d
 def one_dim_vor(unsorted_points):
     points = sorted(unsorted_points)
     #print points
@@ -162,16 +72,9 @@ def bounded_voronoi(points):
         all_points = np.append(all_points, new_points_up, axis=0)
 
     # Compute Voronoi
-    #sys.stdout.write("starting Voronoi diagram computation... ")
-    #vor_start_time = time.time()
     qhull_options = 'Qbb Qc Qz Qx Q12' if len(points[0]) > 4 else 'Qbb Qc Qz Q12'
     vor = sp.spatial.Voronoi(all_points, qhull_options=qhull_options)
-    #vor = sp.spatial.Voronoi(all_points)
-    #sys.stdout.write("done! took {} seconds.\n".format(time.time() - vor_start_time))
 
-
-    #points_start_time = time.time()
-    #sys.stdout.write('filtering the {} points... '.format(len(vor.vertices)))
     vor.filtered_vertices = []
     for vertex in vor.vertices:
         vertex_in_cube = True
@@ -181,26 +84,25 @@ def bounded_voronoi(points):
         if vertex_in_cube:
             vor.filtered_vertices.append(vertex)
 
-    #sys.stdout.write('done! took {} seconds.\n'.format(time.time() - points_start_time))
     vor.filtered_vertices = np.array(vor.filtered_vertices)
     vor.filtered_points = points
 
     return vor
 
-
+# the function which computes the dispersion of a set of points
 def compute_dispersion(vor):
-
     # if points are 1d, this is a list of distances between points
     if type(vor) == type([]):
         return max(vor)
     # if points > 1d, this is a voronoi diagram
+    # we find the largest distance between the vertices and the points
     else:
         tree = spatial.KDTree(vor.filtered_points)
         min_dists = tree.query(vor.filtered_vertices)
 
         return max(min_dists[0])
 
-
+# a debugging function that can print relevant items in a d-dimensional voronoi diagram (potentially d != 2)
 def print_bounded_ddim_vor(vor):
     print vor.filtered_regions
     unique_vertex_indices = set()
@@ -223,7 +125,8 @@ def print_bounded_ddim_vor(vor):
     print(len(unique_vertices))
     print(unique_vertices)
 
-
+# a function which can filter the regions of a voronoi diagram to those only in the unit cube
+# currently just used for debugging / printing
 def filter_regions(vor):
     eps = get_epsilon(len(vor.points[0]))
     # Filter regions
@@ -249,7 +152,7 @@ def filter_regions(vor):
     vor.filtered_regions = regions
 
 
-
+# prints a 2-d voronoi diagram within the unit cube.
 def print_bounded_vor(vor):
     filter_regions(vor)
     fig = plt.figure()
@@ -295,16 +198,60 @@ def print_bounded_vor(vor):
     x_vals = [first_point[0], second_point[0]]
     y_vals = [first_point[1], second_point[1]]
 
-    #x_vals = [vor.filtered_points[min_dists[1][index]][0], vor.filtered_vertices[index][0]]
-    #y_vals = [vor.filtered_points[min_dists[1][index]][1], vor.filtered_vertices[index][1]]
     ax.plot(x_vals, y_vals, 'r')
-    #print('dispersion:')
     
     ax.set_xlim([-0.1, 1.1])
     ax.set_ylim([-0.1, 1.1])
     plt.show()
 
+# prints a non-bounded 2-d voronoi diagram
+def print_vor(vor):
+    spatial.voronoi_plot_2d(vor)
+    plt.show()
 
+# prints the lines found in the voronoi diagram
+def print_lines(bounded_lines, unbounded_lines):
+    print('')
+    print('bounded_lines')
+    for line in bounded_lines:
+        print(line)
+
+    print('')
+    print('unbounded_lines')
+    print(unbounded_lines)
+    
+# finds the bounded lines in the voronoi diagram
+def get_bounded_lines(vor):
+    line_segments = []
+    for simplex in vor.ridge_vertices:
+        simplex = np.asarray(simplex)
+        if np.all(simplex >= 0):
+            line_segments.append([(x, y) for x, y in vor.vertices[simplex]])
+
+    return line_segments
+
+# finds the unbounded lines in the voronoi diagram.
+# these have a starting point and a direction.
+def get_unbounded_lines(vor):
+    line_segments = []
+
+    center = vor.points.mean(axis=0)
+    for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
+        simplex = np.asarray(simplex)
+        if np.any(simplex < 0):
+            i = simplex[simplex >= 0][0]  # finite end Voronoi vertex
+
+            t = vor.points[pointidx[1]] - vor.points[pointidx[0]]  # tangent
+            t /= np.linalg.norm(t)
+            n = np.array([-t[1], t[0]])  # normal
+
+            midpoint = vor.points[pointidx].mean(axis=0)
+            direction = np.sign(np.dot(midpoint - center, n)) * n
+            far_point = vor.vertices[i] + direction * vor.points.ptp(axis=0).max()
+
+            line_segments.append([(vor.vertices[i, 0], vor.vertices[i, 1]),
+                                  (far_point[0], far_point[1])])
+    return line_segments
 
 
 

@@ -1,4 +1,5 @@
 import pickle, pprint
+import os
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -25,13 +26,13 @@ def get_sampler_names():
                      'DPPSeqPostSigma004': 'DPP-rbf-sigma=0.004',
                      'DPPPostVarSigmaSqrt2overN': 'k-DPP-RBF',
                      'DPPNsquaredOverD': 'DPP-rbf-sigma=k^2/d^3',
-                     'DPPSearchSigma' : 'DPP-rbf-search-sigma'
+                     'DPPSearchSigma' : 'DPP-rbf-search-sigma',
     }
     
     return sampler_names
 
 def get_measure_names():
-    measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy', 'unif_point':'distance from random point', 'dispersion': 'dispersion'}
+    measure_names = {'l2':'distance from origin', 'l2_cntr':'distance from center', 'l1':'L1_from_origin', 'l1_cntr':'L1_from_center', 'discrep': 'star discrepancy', 'unif_point':'distance from random point', 'dispersion': 'dispersion', }
     return measure_names
 
 
@@ -85,7 +86,7 @@ def compute_averages(data):
                     #print data[sampler][measure].keys()
                     #print sampler, measure, n, d
                     #print sorted(data[sampler][measure][d].keys())
-
+                    
                     for sample_num in data[sampler][measure][d][n]:
 
                         # there's some data which was generated with n^3 iters of mcmc, but we want to exclude it.
@@ -128,7 +129,7 @@ def get_one_plot_data(data, measure, d):
 
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
-    matplotlib.rcParams.update({'font.size':6})
+    matplotlib.rcParams.update({'font.size':12})
     fig = plt.figure(figsize=(10,10))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
@@ -136,7 +137,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     #             fontsize=8)
 
     counter = 0
-    measures = ['dispersion']#['unif_point','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
+    measures = get_eval_measures()#['dispersion']#['unif_point','l2_cntr', 'l2']#, 'l1', 'l1_cntr']
     ds = get_ds()
     #ds = [get_ds()[0], get_ds()[1], get_ds()[2], get_ds()[3], get_ds()[6]]
 
@@ -186,9 +187,18 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/iclr_2019/' + get_filename(ds, measures, samplers, min_samp_num) + '.pdf'
-    plt.savefig(out_fname)
-    print("saving to {}".format(out_fname))
+    out_fname = 'plots/iclr_2019/' + get_filename(ds, measures, samplers, min_samp_num)
+    cur_out_fname = out_fname + '.pdf'
+    
+    if not os.path.exists(cur_out_fname):
+        plt.savefig(cur_out_fname)
+    else:
+        counter = 0
+        while os.path.exists(cur_out_fname):
+            counter += 1
+            cur_out_fname = out_fname + '_{}'.format(counter) + '.pdf'
+        plt.savefig(cur_out_fname)
+    print("saving to {}".format(cur_out_fname))
 
 
 
@@ -211,7 +221,7 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
         
         #line.set_label(sampler)
         
-        sampler_label = get_sampler_names()[sampler]
+        sampler_label = get_sampler_names()[sampler] if sampler in get_sampler_names() else sampler
         
         
         #del errs[len(errs)-1]

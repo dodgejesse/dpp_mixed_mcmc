@@ -22,7 +22,6 @@ def main():
     d = 1
     sampler = 'SobolSampler'
 
-
     for n in ns:
         #n=4
         dispersions[n] = []
