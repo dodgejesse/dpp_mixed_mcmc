@@ -13,6 +13,7 @@ import sequentially_sample_post_var
 
 
 
+
 print get_ns()
 exit()
 

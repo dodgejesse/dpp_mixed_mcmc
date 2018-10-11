@@ -123,8 +123,7 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                         with open(get_out_name(sampler, eval_measure), 'wb') as pickle_file:
                                 pickle.dump(cur_evals, pickle_file)
 
-                                                
-                                                
+                                                                                                
                         #print cur_evals.keys()
 
 

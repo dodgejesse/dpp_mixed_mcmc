@@ -27,6 +27,7 @@ def get_sampler_names():
                      'DPPPostVarSigmaSqrt2overN': 'k-DPP-RBF',
                      'DPPNsquaredOverD': 'DPP-rbf-sigma=k^2/d^3',
                      'DPPSearchSigma' : 'DPP-rbf-search-sigma',
+                     'DPPPostVarSearchSigmaBySampling': 'k-DPP-RBF',
     }
     
     return sampler_names
@@ -115,6 +116,7 @@ def compute_averages(data):
                     avgs[sampler][n][d][measure] = np.median(avgs[sampler][n][d][measure])                                                                  
                                                                   
     #print_averages(avgs, stds)
+    #exit()
     multiplot_measure_by_d(avgs, stds, len(data))
 
 def get_one_plot_data(data, measure, d):
@@ -130,7 +132,7 @@ def get_one_plot_data(data, measure, d):
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
     matplotlib.rcParams.update({'font.size':12})
-    fig = plt.figure(figsize=(10,10))
+    fig = plt.figure(figsize=(12,6))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
     #             "DPPs are using an RBF kernel: DPP-rbf-narrow has variance 1/10, DPP-rbf-wide has variance d/2.", 
@@ -149,7 +151,8 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     for d in ds:
         for measure in measures:
             counter = counter + 1
-            cur_ax = fig.add_subplot(len(ds),len(measures),counter, adjustable='box')#adjustable='box', aspect='equal')#adjustable='box', aspect=1)#, adjustable='box', aspect=100)
+            cur_ax = fig.add_subplot(len(ds),len(measures),counter, adjustable='box')
+            #adjustable='box', aspect='equal')#adjustable='box', aspect=1)#, adjustable='box', aspect=100)
             #cur_ax.set_aspect('equal', 'box')
             cur_avgs = get_one_plot_data(avgs, measure, d)
             cur_stds = get_one_plot_data(stds, measure, d)
@@ -163,8 +166,12 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
                 if cur_min[3] > cur_cur_min:
                     cur_min = [d, measure, cur_sampler, cur_cur_min]
             min_samples.append(cur_min)
-
+            
             one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers)
+            if counter == 1:
+                cur_ax.set_xlabel('Distance to center, with k between 3 and 100')
+            else:
+                cur_ax.set_xlabel('Distance to origin, with k between 3 and 100')
             #cur_ax.set_ylabel(get_measure_names()[measure])
             if d == ds[0] and measure == 'discrep':
                 cur_ax.set_title('star discrepancy')
@@ -187,7 +194,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/iclr_2019/' + get_filename(ds, measures, samplers, min_samp_num)
+    out_fname = 'plots/iclr_2019/cleaner_plots/' + get_filename(ds, measures, samplers, min_samp_num)
     cur_out_fname = out_fname + '.pdf'
     
     if not os.path.exists(cur_out_fname):
@@ -229,7 +236,7 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
         #del err_us[len(err_us)-1]
         #del ns_offset[len(ns_offset)-1]
 
-        cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler]['color'], label=sampler_label)
+        cur_ax.plot(ns_offset, errs, '.', color=get_samplers()[sampler]['color'], label=sampler_label, markersize=10)
         cur_ax.fill_between(ns_offset, err_ls, err_us, alpha=.1, color=get_samplers()[sampler]['color'])
         cur_ax.set_xscale('log')
         cur_ax.set_yscale('log')
@@ -245,13 +252,24 @@ def one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers):
 
 
 def print_averages(avgs, stds):
-    print avgs['UniformSampler'][40][1]
-    print avgs['DPPNNarrow'][40][1]
-    print stds['DPPNNarrow'][40][1]
+    #print avgs['UniformSampler'][40][1]
+    #print avgs['DPPNNarrow'][40][1]
+    #print stds['DPPNNarrow'][40][1]
     #for thing in sorted():
     #    print thing
+    
+
     for thing in avgs:
-        print thing
+        cur = 0
+        prev_val = 0
+        for i in avgs[thing]:
+            cur_val = avgs[thing][i][1]['dispersion']
+            print i,cur_val
+            if cur_val != prev_val:
+                print('step_size = {}'.format(i-cur))
+                prev_val = cur_val
+                cur = i
+
     sys.exit()
 
 

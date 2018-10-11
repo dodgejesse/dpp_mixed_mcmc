@@ -7,6 +7,7 @@ import functools
 import sequentially_sample_post_var
 import scipy
 import dispersion
+import best_known_dispersion
 
 def get_samplers():
     samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
@@ -27,14 +28,16 @@ def get_samplers():
                 #'DPPNsquaredOverD': {'fn': dpp_rbf_unitcube.DPPNsquaredOverD, 'color': 'm'},
                 #'DPPSearchSigma': {'fn': dpp_rbf_unitcube.DPPSearchSigma, 'color': 'm'},
                 
+                #'NiederreiterSampler': {'fn': Niederreiter, 'color':'y'},
+                #'NiederreiterSamplerNoNoise': {'fn': NiederreiterNoNoise, 'color':'c'},
                 
                 #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
-                #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overN, 'color': 'm'},
+                'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overN, 'color': 'm'},
                 #'DPPPostVarSigmaSqrt2overND': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overND, 'color': 'k'},
                 #'DPPPostVarSigmaSqrt2overNtosqrtD': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overNtosqrtD, 'color': 'y'},
                 #'DPPPostVarSigmaDover45': {'fn':sequentially_sample_post_var.one_sample_sigma_dover45, 'color': 'c'},
                 #'DPPPostVarSearchSigma': {'fn':sequentially_sample_post_var.one_sample_search_sigma, 'color': 'c'},
-                'DPPPostVarSearchSigmaBySampling': {'fn':sequentially_sample_post_var.one_sample_search_sigma_by_sampling, 'color': 'm'},
+                #'DPPPostVarSearchSigmaBySampling': {'fn':sequentially_sample_post_var.one_sample_search_sigma_by_sampling, 'color': 'm'},
                 #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
     }
     return samplers
@@ -52,7 +55,7 @@ def get_n_min():
     return 3
 
 def get_n_max():
-    return 500
+    return 100
 
 def get_ns():
     n_max = get_n_max()
@@ -62,26 +65,26 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [2]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 
 def get_eval_measures():
     eval_measures = {
         #'l2':get_min_l2_norm, 
-        #'l1':get_min_l1_norm, 
+        'l1':get_min_l1_norm, 
         #'l2_cntr':get_min_l2_norm_center, 
-        #'l1_cntr':get_min_l1_norm_center,
+        'l1_cntr':get_min_l1_norm_center,
         #'discrep':get_discrepency,
         #'unif_point':get_min_to_uniformly_sampled_point
-        'dispersion':get_dispersion,
+        #'dispersion':get_dispersion,
         #'projected_1d_dispersion':get_projected_1d_dispersion,
     }
 
     return eval_measures
 
 def get_num_samples():
-    return 100
+    return 200
 
 #if __name__ == "__main__":
 #    discrepancy.draw_many_samples()
@@ -166,6 +169,18 @@ def get_min_to_uniformly_sampled_point(X):
     
 
 ############################ the samplers ############################
+
+def Niederreiter(n, d):
+    X = best_known_dispersion.get_sequence(n,d)
+    U = np.random.rand(d)
+    X += U
+    X -= np.floor(X)
+    return X
+
+def NiederreiterNoNoise(n, d):
+    X = best_known_dispersion.get_sequence(n,d)
+    return X
+
 
 
 # adds uniform noise in [0,1], then for those results above 1 it subtracts 1
