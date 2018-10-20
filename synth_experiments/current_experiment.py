@@ -39,6 +39,7 @@ def get_samplers():
                 #'DPPPostVarSearchSigma': {'fn':sequentially_sample_post_var.one_sample_search_sigma, 'color': 'c'},
                 #'DPPPostVarSearchSigmaBySampling': {'fn':sequentially_sample_post_var.one_sample_search_sigma_by_sampling, 'color': 'm'},
                 #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
+                'DPPExactSigmaSqrt2overN': {'fn': exact_dpp_sampling.sigma_sqrt2overN, 'color': c}
     }
     return samplers
 

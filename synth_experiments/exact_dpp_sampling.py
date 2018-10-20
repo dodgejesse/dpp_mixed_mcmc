@@ -97,19 +97,29 @@ def pickle_sample(X_train, sigma, n, d, sigma_name):
         pickle_loc = 'pickled_data/dim=1/sampler=DPPSeqPostSigma{}_n={}_d={}_samplenum={}'.format(str(sigma)[2:], n, d, sys.argv[1])
     pickle.dump(X_train, open(pickle_loc, 'wb'))
 
-
-
+# to make this faster, precompute M_i_ab
 def new_main(D=8,k=50,sigma=.01):
-    epsilon = 0.00001
+    import time
+    epsilon = 0.0001
     #import pdb; pdb.set_trace()    
     X = np.random.random((1,D))
+
+    
     for i in range(k-1):
+        global time_spent_in_methods
+        time_spent_in_methods = [[],[],[]]
+        start_time = time.time()
         distances = build_distance_sq_matrix(X,X)
+        post_distance_time = time.time()
         K = build_rbf_kernel(distances, sigma)
+        post_rbf_time = time.time()
         K_inv = np.linalg.inv(K) # THIS IS GOING TO BE PROBLEMATIC!
+        post_inv_time = time.time()
         x_i = np.asarray([])
         for d in range(D):
+            d_start_time = time.time()
             scaling_factor = get_prob(x_i, 1, X, D, sigma, K_inv)
+            d_post_scaling_factor = time.time()
             u = scaling_factor * np.random.random()
             I = [0,1]
             while I[1] - I[0] > epsilon:
@@ -119,25 +129,36 @@ def new_main(D=8,k=50,sigma=.01):
                 else:
                     I = [I[0], avg]
             x_i = np.append(x_i, .5*(I[0] + I[1]))
+            d_post_search = time.time()
+            print("\t one_get_prob={:.6f}, one_search={:.6f}, total_{:.0f}th_dim={:.6f}".format(d_post_scaling_factor - d_start_time, d_post_search - d_post_scaling_factor, d, d_post_search-d_start_time))
+        #import pdb; pdb.set_trace()
+        print("build_distance_mtx={:.6f}, build_rbf_from_distance={:.6f}, inverse={:.6f}, total_for_{:.0f}th_sample={:.6f}".format(post_distance_time-start_time, post_rbf_time - post_distance_time, post_inv_time - post_rbf_time, i, d_post_search-start_time))
+        print("{}, {}, {}".format(sum(time_spent_in_methods[0]),sum(time_spent_in_methods[1]),sum(time_spent_in_methods[2])))
         X = np.vstack((X, x_i))
         print(d, i+1)
     print(X)
     return X
     
-            
-    
-
-
-    
 def get_prob(x_i, x_i_d, X, D, sigma, K_inv):
+    global time_spent_in_methods
     a_b_sum = 0
     for a in range(len(X)):
         for b in range(len(X)):
+            first_start = time.time()
             first_equation_line = get_first_line_of_eq(x_i, a, b, X, D, sigma, K_inv)
+            second_start = time.time()
             second_equation_line = get_second_line_of_eq(x_i_d, a, b, X, len(x_i), sigma)
+            third_start = time.time()
             third_equation_line = get_third_line_of_eq(a, b, X, len(x_i), D, sigma)
+            third_end = time.time()
             
             a_b_sum += first_equation_line * second_equation_line * third_equation_line
+
+            
+            time_spent_in_methods[0].append(second_start - first_start)
+            time_spent_in_methods[1].append(third_start - second_start)
+            time_spent_in_methods[2].append(third_end - third_start)
+            
             
     return x_i_d - a_b_sum
     
@@ -174,6 +195,17 @@ def get_M_i_ab(a,b,X,D,sigma):
 def m_a_b(a,b,X,d):
     return .5*(X[a][d]+X[b][d])
         
+
+
+
+def sigma_sqrt2overN(n,d):
+    sigma = np.sqrt(2.0)/n
+    return new_main(d, n, sigma)
+
+
+
+
+
 
 
 
