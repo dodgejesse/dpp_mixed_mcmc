@@ -98,8 +98,8 @@ def pickle_sample(X_train, sigma, n, d, sigma_name):
     pickle.dump(X_train, open(pickle_loc, 'wb'))
 
 # to make this faster, precompute M_i_ab
-def new_main(D=1,k=100,sigma=.01):
-    #debug_print = True
+def new_main(D=3,k=5,sigma=50):
+    debug_print = False
     import time
     epsilon = 0.0001
 
