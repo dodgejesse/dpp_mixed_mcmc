@@ -57,7 +57,7 @@ def get_n_min():
     return 3
 
 def get_n_max():
-    return 100
+    return 20
 
 def get_ns():
     n_max = get_n_max()
@@ -67,7 +67,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [1, 2, 3]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [1]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
     return ds
 
 
