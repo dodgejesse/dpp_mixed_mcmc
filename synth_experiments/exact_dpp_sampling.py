@@ -120,7 +120,7 @@ def new_main(D=1,k=100,sigma=.01):
 
         M_iK_inv = np.multiply(M_i, K_inv)
 
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         
         m_ab = compute_m_ab(X)
 
