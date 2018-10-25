@@ -99,7 +99,7 @@ def pickle_sample(X_train, sigma, n, d, sigma_name):
 
 # to make this faster, precompute M_i_ab
 def new_main(D=1,k=100,sigma=.01):
-    debug_print = False
+    debug_print = True
     import time
     epsilon = 0.0001
 
@@ -137,7 +137,7 @@ def new_main(D=1,k=100,sigma=.01):
                     I = [avg, I[1]]
                 else:
                     I = [I[0], avg]
-            x_i = np.append(x_i, .5*(I[0] + I[1]))
+            x_i = np.append(x_i, np.random.uniform(I[0] + I[1]))
             d_post_search = time.time()
             if debug_print:
                 print("\t one_get_prob={:.6f}, one_search={:.6f}, total_{:.0f}th_dim={:.6f}".format(d_post_scaling_factor - d_start_time, d_post_search - d_post_scaling_factor, d, d_post_search-d_start_time))
@@ -181,8 +181,7 @@ def get_first_line_of_eq(x_i, a, b, D, sigma, M_iK_inv, m_ab):
         sum_up_to_d_minus_one += (x_i[r] - m_ab[a][b][r])**2
     expd_sum = np.exp(-sum_up_to_d_minus_one/sigma**2)
 
-    #M_i_ab = get_M_i_ab(a,b,X,D,sigma)
-    return expd_sum * M_iK_inv[a][b] #* M_i_ab * K_inv[a][b]
+    return expd_sum * M_iK_inv[a][b]
 
 def get_second_line_of_eq(x_i_d, a,b,d,sigma, m_ab):
 
@@ -199,23 +198,13 @@ def get_third_line_of_eq(a,b,d,D,sigma, m_ab):
         third_term = np.sqrt(np.pi)*sigma/2.0
         prod_val = prod_val * (first_term + second_term) * third_term
     return prod_val
-    
-#def get_M_i_ab(a,b,X,D,sigma):
-#    s = 0
-#    for d in range(D):
-#        s += (X[a][d] - X[b][d])**2
-#    return np.exp(-s/4.0*sigma**2)
-
-#def m_a_b(a,b,X,d):
-#    return .5*(X[a][d]+X[b][d])
-        
+            
 def compute_m_ab(X):
     m_ab = np.zeros((X.shape[0], X.shape[0], X.shape[1]))
     for i in range(X.shape[0]):
         for j in range(X.shape[0]):
             m_ab[i][j] = .5*(X[i] + X[j])
     return m_ab
-
 
 def sigma_sqrt2overN(n,d):
     sigma = np.sqrt(2.0)/n
