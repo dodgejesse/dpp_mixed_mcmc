@@ -98,11 +98,11 @@ def pickle_sample(X_train, sigma, n, d, sigma_name):
     pickle.dump(X_train, open(pickle_loc, 'wb'))
 
 # to make this faster, precompute M_i_ab
-def new_main(D=3,k=5,sigma=50):
+def new_main(D=3,k=20,sigma=50):
     debug_print = False
     import time
     epsilon = 0.0001
-
+    max_cond_num = 10**8
     X = np.random.random((1,D))
     
     for i in range(k-1):
@@ -114,6 +114,9 @@ def new_main(D=3,k=5,sigma=50):
         K = build_rbf_kernel(distances, sigma)
         post_rbf_time = time.time()
         K_inv = np.linalg.inv(K) # THIS IS GOING TO BE PROBLEMATIC!
+
+        if debug_print:
+            print("condition number of K_inv: {:.6f}".format(np.linalg.cond(K_inv)))
         post_inv_time = time.time()
         
         M_i = np.exp(-distances / (4.0*sigma**2))
@@ -137,7 +140,7 @@ def new_main(D=3,k=5,sigma=50):
                     I = [avg, I[1]]
                 else:
                     I = [I[0], avg]
-            x_i = np.append(x_i, np.random.uniform(I[0] + I[1]))
+            x_i = np.append(x_i, np.random.uniform(I[0], I[1]))
             d_post_search = time.time()
             if debug_print:
                 print("\t one_get_prob={:.6f}, one_search={:.6f}, total_{:.0f}th_dim={:.6f}".format(d_post_scaling_factor - d_start_time, d_post_search - d_post_scaling_factor, d, d_post_search-d_start_time))
@@ -145,7 +148,6 @@ def new_main(D=3,k=5,sigma=50):
         if debug_print:
             print("build_distance_mtx={:.6f}, build_rbf_from_distance={:.6f}, inverse={:.6f}, total_for_{:.0f}th_sample={:.6f}".format(post_distance_time-start_time, post_rbf_time - post_distance_time, post_inv_time - post_rbf_time, i, d_post_search-start_time))
             print("{}, {}, {}".format(sum(time_spent_in_methods[0]),sum(time_spent_in_methods[1]),sum(time_spent_in_methods[2])))
-            print(d, i+1)
         X = np.vstack((X, x_i))
 
     if debug_print:
