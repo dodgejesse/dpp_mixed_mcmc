@@ -152,6 +152,7 @@ def new_main(D=3,k=20,sigma=50):
 
     if debug_print:
         print(X)
+        print("final condition number: {}".format(np.linalg.cond(K_inv)))
     return X
     
 def get_prob(x_i, x_i_d, X, D, sigma, M_iK_inv, m_ab):
@@ -426,6 +427,10 @@ def load_and_print_searched_sigmas():
 
 if __name__ == "__main__":
     #draw_many_samples_sigma_sqrt2overn()
+
+    #for i in range(20):
+    #    sigma_sqrt2overN(i+2,3)
+
     new_main()
     
 
