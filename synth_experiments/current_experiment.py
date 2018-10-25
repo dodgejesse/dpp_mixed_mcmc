@@ -29,8 +29,8 @@ def get_samplers():
                 #'DPPNsquaredOverD': {'fn': dpp_rbf_unitcube.DPPNsquaredOverD, 'color': 'm'},
                 #'DPPSearchSigma': {'fn': dpp_rbf_unitcube.DPPSearchSigma, 'color': 'm'},
                 
-                'NiederreiterSampler': {'fn': Niederreiter, 'color':'y'},
-                'NiederreiterSamplerNoNoise': {'fn': NiederreiterNoNoise, 'color':'c'},
+                #'NiederreiterSampler': {'fn': Niederreiter, 'color':'y'},
+                #'NiederreiterSamplerNoNoise': {'fn': NiederreiterNoNoise, 'color':'c'},
                 
                 #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
                 #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overN, 'color': 'm'},
@@ -40,7 +40,7 @@ def get_samplers():
                 #'DPPPostVarSearchSigma': {'fn':sequentially_sample_post_var.one_sample_search_sigma, 'color': 'c'},
                 #'DPPPostVarSearchSigmaBySampling': {'fn':sequentially_sample_post_var.one_sample_search_sigma_by_sampling, 'color': 'm'},
                 #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
-                #'DPPExactSigmaSqrt2overN': {'fn': exact_dpp_sampling.sigma_sqrt2overN, 'color': 'c'},
+                'DPPExactSigmaSqrt2overN': {'fn': exact_dpp_sampling.sigma_sqrt2overN, 'color': 'c'},
     }
     return samplers
 
