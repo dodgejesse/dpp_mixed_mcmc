@@ -98,12 +98,12 @@ def pickle_sample(X_train, sigma, n, d, sigma_name):
     pickle.dump(X_train, open(pickle_loc, 'wb'))
 
 # to make this faster, precompute M_i_ab
-def new_main(D=8,k=50,sigma=.01):
+def new_main(D=1,k=100,sigma=.01):
+    debug_print = False
     import time
     epsilon = 0.0001
-    #import pdb; pdb.set_trace()    
-    X = np.random.random((1,D))
 
+    X = np.random.random((1,D))
     
     for i in range(k-1):
         global time_spent_in_methods
@@ -115,41 +115,54 @@ def new_main(D=8,k=50,sigma=.01):
         post_rbf_time = time.time()
         K_inv = np.linalg.inv(K) # THIS IS GOING TO BE PROBLEMATIC!
         post_inv_time = time.time()
+        
+        M_i = np.exp(-distances / (4.0*sigma**2))
+
+        M_iK_inv = np.multiply(M_i, K_inv)
+
+        import pdb; pdb.set_trace()
+        
+        m_ab = compute_m_ab(X)
+
         x_i = np.asarray([])
         for d in range(D):
             d_start_time = time.time()
-            scaling_factor = get_prob(x_i, 1, X, D, sigma, K_inv)
+            scaling_factor = get_prob(x_i, 1, X, D, sigma, M_iK_inv, m_ab)
             d_post_scaling_factor = time.time()
             u = scaling_factor * np.random.random()
             I = [0,1]
             while I[1] - I[0] > epsilon:
                 avg = .5*(I[0]+I[1])
-                if get_prob(x_i, avg, X, D, sigma, K_inv) < u:
+                if get_prob(x_i, avg, X, D, sigma, M_iK_inv, m_ab) < u:
                     I = [avg, I[1]]
                 else:
                     I = [I[0], avg]
             x_i = np.append(x_i, .5*(I[0] + I[1]))
             d_post_search = time.time()
-            print("\t one_get_prob={:.6f}, one_search={:.6f}, total_{:.0f}th_dim={:.6f}".format(d_post_scaling_factor - d_start_time, d_post_search - d_post_scaling_factor, d, d_post_search-d_start_time))
-        #import pdb; pdb.set_trace()
-        print("build_distance_mtx={:.6f}, build_rbf_from_distance={:.6f}, inverse={:.6f}, total_for_{:.0f}th_sample={:.6f}".format(post_distance_time-start_time, post_rbf_time - post_distance_time, post_inv_time - post_rbf_time, i, d_post_search-start_time))
-        print("{}, {}, {}".format(sum(time_spent_in_methods[0]),sum(time_spent_in_methods[1]),sum(time_spent_in_methods[2])))
+            if debug_print:
+                print("\t one_get_prob={:.6f}, one_search={:.6f}, total_{:.0f}th_dim={:.6f}".format(d_post_scaling_factor - d_start_time, d_post_search - d_post_scaling_factor, d, d_post_search-d_start_time))
+
+        if debug_print:
+            print("build_distance_mtx={:.6f}, build_rbf_from_distance={:.6f}, inverse={:.6f}, total_for_{:.0f}th_sample={:.6f}".format(post_distance_time-start_time, post_rbf_time - post_distance_time, post_inv_time - post_rbf_time, i, d_post_search-start_time))
+            print("{}, {}, {}".format(sum(time_spent_in_methods[0]),sum(time_spent_in_methods[1]),sum(time_spent_in_methods[2])))
+            print(d, i+1)
         X = np.vstack((X, x_i))
-        print(d, i+1)
-    print(X)
+
+    if debug_print:
+        print(X)
     return X
     
-def get_prob(x_i, x_i_d, X, D, sigma, K_inv):
+def get_prob(x_i, x_i_d, X, D, sigma, M_iK_inv, m_ab):
     global time_spent_in_methods
     a_b_sum = 0
     for a in range(len(X)):
         for b in range(len(X)):
             first_start = time.time()
-            first_equation_line = get_first_line_of_eq(x_i, a, b, X, D, sigma, K_inv)
+            first_equation_line = get_first_line_of_eq(x_i, a, b, D, sigma, M_iK_inv, m_ab)
             second_start = time.time()
-            second_equation_line = get_second_line_of_eq(x_i_d, a, b, X, len(x_i), sigma)
+            second_equation_line = get_second_line_of_eq(x_i_d, a, b, len(x_i), sigma, m_ab)
             third_start = time.time()
-            third_equation_line = get_third_line_of_eq(a, b, X, len(x_i), D, sigma)
+            third_equation_line = get_third_line_of_eq(a, b, len(x_i), D, sigma, m_ab)
             third_end = time.time()
             
             a_b_sum += first_equation_line * second_equation_line * third_equation_line
@@ -162,40 +175,46 @@ def get_prob(x_i, x_i_d, X, D, sigma, K_inv):
             
     return x_i_d - a_b_sum
     
-def get_first_line_of_eq(x_i, a, b, X, D, sigma, K_inv):
+def get_first_line_of_eq(x_i, a, b, D, sigma, M_iK_inv, m_ab):
     sum_up_to_d_minus_one = 0
     for r in range(len(x_i)):
-        sum_up_to_d_minus_one += (x_i[r] - m_a_b(a,b,X,r))**2
+        sum_up_to_d_minus_one += (x_i[r] - m_ab[a][b][r])**2
     expd_sum = np.exp(-sum_up_to_d_minus_one/sigma**2)
-    M_i_ab = get_M_i_ab(a,b,X,D,sigma)
-    return expd_sum * M_i_ab * K_inv[a][b]
 
-def get_second_line_of_eq(x_i_d, a,b,X,d,sigma):
+    #M_i_ab = get_M_i_ab(a,b,X,D,sigma)
+    return expd_sum * M_iK_inv[a][b] #* M_i_ab * K_inv[a][b]
 
-    first_term = scipy.special.erf((x_i_d - m_a_b(a,b,X,d))/sigma)
-    second_term = scipy.special.erf(m_a_b(a,b,X,d)/sigma)
+def get_second_line_of_eq(x_i_d, a,b,d,sigma, m_ab):
+
+    first_term = scipy.special.erf((x_i_d - m_ab[a][b][d])/sigma)
+    second_term = scipy.special.erf(m_ab[a][b][d]/sigma)
     third_term = np.sqrt(np.pi)*sigma/2.0
     return (first_term + second_term) * third_term
 
-def get_third_line_of_eq(a,b,X,d,D,sigma):
+def get_third_line_of_eq(a,b,d,D,sigma, m_ab):
     prod_val = 1
     for l in range(d+1,D):
-        first_term = scipy.special.erf((1 - m_a_b(a,b,X,l))/sigma)
-        second_term = scipy.special.erf(m_a_b(a,b,X,l)/sigma)
+        first_term = scipy.special.erf((1 - m_ab[a][b][l])/sigma)
+        second_term = scipy.special.erf(m_ab[a][b][l]/sigma)
         third_term = np.sqrt(np.pi)*sigma/2.0
         prod_val = prod_val * (first_term + second_term) * third_term
     return prod_val
     
-def get_M_i_ab(a,b,X,D,sigma):
-    s = 0
-    for d in range(D):
-        s += (X[a][d] - X[b][d])**2
-    return np.exp(-s/4.0*sigma**2)
+#def get_M_i_ab(a,b,X,D,sigma):
+#    s = 0
+#    for d in range(D):
+#        s += (X[a][d] - X[b][d])**2
+#    return np.exp(-s/4.0*sigma**2)
 
-def m_a_b(a,b,X,d):
-    return .5*(X[a][d]+X[b][d])
+#def m_a_b(a,b,X,d):
+#    return .5*(X[a][d]+X[b][d])
         
-
+def compute_m_ab(X):
+    m_ab = np.zeros((X.shape[0], X.shape[0], X.shape[1]))
+    for i in range(X.shape[0]):
+        for j in range(X.shape[0]):
+            m_ab[i][j] = .5*(X[i] + X[j])
+    return m_ab
 
 
 def sigma_sqrt2overN(n,d):

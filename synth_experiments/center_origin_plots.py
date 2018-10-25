@@ -151,7 +151,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     for d in ds:
         for measure in measures:
             counter = counter + 1
-            cur_ax = fig.add_subplot(len(ds),len(measures),counter, adjustable='box')
+            cur_ax = fig.add_subplot(len(measures),len(ds),counter, adjustable='box')
             #adjustable='box', aspect='equal')#adjustable='box', aspect=1)#, adjustable='box', aspect=100)
             #cur_ax.set_aspect('equal', 'box')
             cur_avgs = get_one_plot_data(avgs, measure, d)
@@ -168,10 +168,10 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
             min_samples.append(cur_min)
             
             one_plot(cur_ax, cur_avgs, cur_stds, measure, d, samplers)
-            if counter == 1:
-                cur_ax.set_xlabel('Distance to center, with k between 3 and 100')
-            else:
-                cur_ax.set_xlabel('Distance to origin, with k between 3 and 100')
+            #if counter == 1:
+            #    cur_ax.set_xlabel('Distance to center, with k between 3 and 100')
+            #else:
+            #    cur_ax.set_xlabel('Distance to origin, with k between 3 and 100')
             #cur_ax.set_ylabel(get_measure_names()[measure])
             if d == ds[0] and measure == 'discrep':
                 cur_ax.set_title('star discrepancy')
@@ -181,6 +181,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
                 cur_ax.set_title('distance from center')
             if measure == 'discrep' and d == ds[-1]:
                 cur_ax.set_xlabel('k, between {} and {}'.format(get_n_min(), get_n_max()))
+            cur_ax.set_title('d = {}'.format(d))
             #if measure == 'discrep':
             #    cur_ax.set_ylabel('d={}'.format(d))
 
@@ -194,7 +195,7 @@ def multiplot_measure_by_d(avgs, stds, num_samples):
     
     #print("the number of d=1,n=40,DPPNNarrow samps:", 
 
-    out_fname = 'plots/iclr_2019/cleaner_plots/' + get_filename(ds, measures, samplers, min_samp_num)
+    out_fname = 'plots/best_known/' + get_filename(ds, measures, samplers, min_samp_num)
     cur_out_fname = out_fname + '.pdf'
     
     if not os.path.exists(cur_out_fname):
