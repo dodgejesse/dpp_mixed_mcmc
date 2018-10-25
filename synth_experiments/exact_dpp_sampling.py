@@ -99,7 +99,7 @@ def pickle_sample(X_train, sigma, n, d, sigma_name):
 
 # to make this faster, precompute M_i_ab
 def new_main(D=1,k=100,sigma=.01):
-    debug_print = True
+    #debug_print = True
     import time
     epsilon = 0.0001
 
