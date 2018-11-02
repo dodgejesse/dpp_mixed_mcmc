@@ -53,58 +53,23 @@ def build_distance_sq_matrix(X, Z):
 	return np.outer(np.sum(X**2, axis=1), np.ones(Z.shape[0])) -2*np.dot(X, Z.T) + np.outer(np.ones(X.shape[0]), np.sum(Z**2, axis=1))
 
 
-def update_kernel_mtxs(train_kernel_mtx, test_to_train_kernel_mtx, X_train, X_test, new_point, sigma):
-    new_point_val = X_test[np.array([new_point])]
+def set_global_storage_objects():
+    global first_line_stored
+    global third_line_stored
+    third_line_stored = {}
+    first_line_stored = {}
 
-    # add new point to train
-    X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
-    # remove new point from test
-    X_test = np.delete(X_test, new_point, axis=0)
-
-    # take row for new_point from test_to_train and put it in train_kernel
-    new_point_to_train_kernel = np.asarray([test_to_train_kernel_mtx[new_point]])
-    ## remove new_point distances from test_to_train
-    test_to_train_kernel_mtx = np.delete(test_to_train_kernel_mtx, new_point, axis=0)
-    new_col = np.append(new_point_to_train_kernel.T,[[1]], axis=0)
-    with_new_row = np.concatenate((train_kernel_mtx, new_point_to_train_kernel))
-    ## this guy is the new train_dist_mtx
-    train_kernel_mtx = np.concatenate((with_new_row, new_col), axis=1)
-
-    # compute distances between new point and test points
-    test_to_new_point_dist_mtx = build_distance_sq_matrix(X_test, new_point_val)
-    test_to_new_point_kernel_mtx = build_rbf_kernel(test_to_new_point_dist_mtx, sigma)
-
-    # add new distances to test_to_train_dist_mtx
-    test_to_train_kernel_mtx = np.concatenate((test_to_train_kernel_mtx, test_to_new_point_kernel_mtx), axis=1)
-
-    return train_kernel_mtx, test_to_train_kernel_mtx, X_train, X_test
-
-
-# to initialize the relevant matricies
-def initialize_kernel_matrices(X_train, X_test, sigma):
-    train_dist_mtx = build_distance_sq_matrix(X_train, X_train)
-    train_kernel_mtx = build_rbf_kernel(train_dist_mtx, sigma)
-
-    test_to_train_dist_mtx = build_distance_sq_matrix(X_test, X_train)
-    test_to_train_kernel_mtx = build_rbf_kernel(test_to_train_dist_mtx, sigma)
-    
-    return train_kernel_mtx, test_to_train_kernel_mtx
-
-def pickle_sample(X_train, sigma, n, d, sigma_name):
-    if sigma_name == "Sqrt2overN":
-        pickle_loc = 'pickled_data/dim=1/sampler=DPPPostVarSigma{}_n={}_d={}_samplenum={}'.format(sigma_name, n, d, sys.argv[1])
-    else:
-        pickle_loc = 'pickled_data/dim=1/sampler=DPPSeqPostSigma{}_n={}_d={}_samplenum={}'.format(str(sigma)[2:], n, d, sys.argv[1])
-    pickle.dump(X_train, open(pickle_loc, 'wb'))
 
 # to make this faster, precompute M_i_ab
-def new_main(D=3,k=20,sigma=50):
-    debug_print = False
+def new_main(D=3,k=100,sigma=0.19814):
+    debug_print = True
     import time
     epsilon = 0.0001
-    max_cond_num = 10**8
+    max_cond_num = 10**6
     X = np.random.random((1,D))
-    
+    actual_start_time = time.time()
+
+    set_global_storage_objects()
     for i in range(k-1):
         global time_spent_in_methods
         time_spent_in_methods = [[],[],[]]
@@ -115,8 +80,11 @@ def new_main(D=3,k=20,sigma=50):
         post_rbf_time = time.time()
         K_inv = np.linalg.inv(K) # THIS IS GOING TO BE PROBLEMATIC!
 
+        cond_num = np.linalg.cond(K_inv)
         if debug_print:
-            print("condition number of K_inv: {:.6f}".format(np.linalg.cond(K_inv)))
+            print("condition number of K_inv: {:.6f}".format(cond_num))
+        if cond_num > max_cond_num:
+            raise np.linalg.linalg.LinAlgError
         post_inv_time = time.time()
         
         M_i = np.exp(-distances / (4.0*sigma**2))
@@ -125,8 +93,8 @@ def new_main(D=3,k=20,sigma=50):
 
         #import pdb; pdb.set_trace()
         
-        m_ab = compute_m_ab(X)
-
+        m_ab = compute_m_ab(X, sigma)
+        
         x_i = np.asarray([])
         for d in range(D):
             d_start_time = time.time()
@@ -151,13 +119,18 @@ def new_main(D=3,k=20,sigma=50):
         X = np.vstack((X, x_i))
 
     if debug_print:
-        print(X)
+        #print(X)
         print("final condition number: {}".format(np.linalg.cond(K_inv)))
+        print("total time: {}".format(time.time() - actual_start_time))
     return X
     
 def get_prob(x_i, x_i_d, X, D, sigma, M_iK_inv, m_ab):
     global time_spent_in_methods
     a_b_sum = 0
+    # resetting the storage for a new x_i_d
+    global second_line_stored
+    second_line_stored = {}
+
     for a in range(len(X)):
         for b in range(len(X)):
             first_start = time.time()
@@ -179,112 +152,128 @@ def get_prob(x_i, x_i_d, X, D, sigma, M_iK_inv, m_ab):
     return x_i_d - a_b_sum
     
 def get_first_line_of_eq(x_i, a, b, D, sigma, M_iK_inv, m_ab):
-    sum_up_to_d_minus_one = 0
-    for r in range(len(x_i)):
-        sum_up_to_d_minus_one += (x_i[r] - m_ab[a][b][r])**2
-    expd_sum = np.exp(-sum_up_to_d_minus_one/sigma**2)
+    global first_line_stored
+    d = len(x_i)
+    # the d,a,b order is a hack!
+    import pdb; pdb.set_trace()
+    stored_val = get_stored_value(d,a,b, first_line_stored)
+    
+    if not stored_val:
 
-    return expd_sum * M_iK_inv[a][b]
+        sum_up_to_d_minus_one = 0
+        for r in range(d):
+            sum_up_to_d_minus_one += (x_i[r] - m_ab[a][b][r])**2
+        expd_sum = np.exp(-sum_up_to_d_minus_one/sigma**2)
+        return_val = expd_sum * M_iK_inv[a][b]
+
+        diffs = (x_i - m_ab[:,:,0:d])**2
+        sum_diffs = diffs.sum(axis=2)
+        exp_sum = np.exp(-sum_diffs/sigma**2)
+        final = np.multiply(exp_sum,M_iK_inv)
+
+        first_line_stored[d] = final
+
+        #diff_sq = (x_i - m_ab[:,:,0:d])**2
+        #exp_sum = np.exp(diff_sq/sigma**2)
+        #final = exp_sum.multiply(M_iK_inv)
+
+        #if stored_val:
+        #    #print("made it here!")
+        #    if not first_line_stored[a][b][d] == return_val:
+        #        import pdb; pdb.set_trace()
+        #        #assert first_line_stored[a][b][d] == return_val
+
+        #first_line_stored[a][b][d] = return_val
+        
+        assert return_val == final[a][b]
+
+
+
+        return return_val
+    else:
+        if len(m_ab) > 3 and len(x_i) > 1:
+            import pdb; pdb.set_trace()
+        return stored_val
 
 def get_second_line_of_eq(x_i_d, a,b,d,sigma, m_ab):
+    #if a > 3 and b > 3:
+    #    import pdb; pdb.set_trace()
+        
+    global second_line_stored
+    if len(second_line_stored) == 0:
+        first_part = (x_i_d - m_ab[:,:,d])/sigma
+        erf_first_part = scipy.special.erf(first_part)
+        # first_part.shape should be something like (a,b)
+        
+        global second_line_second_part_stored
 
-    first_term = scipy.special.erf((x_i_d - m_ab[a][b][d])/sigma)
-    second_term = scipy.special.erf(m_ab[a][b][d]/sigma)
-    third_term = np.sqrt(np.pi)*sigma/2.0
-    return (first_term + second_term) * third_term
+        third_term = np.sqrt(np.pi)*sigma/2.0
+        second_line_stored = (erf_first_part + second_line_second_part_stored[:,:,d]) * third_term
+
+
+    new_computation =  second_line_stored[a][b]
+    
+
+    #first_term = scipy.special.erf((x_i_d - m_ab[a][b][d])/sigma)
+    #second_term = scipy.special.erf(m_ab[a][b][d]/sigma)
+    #third_term = np.sqrt(np.pi)*sigma/2.0
+
+    #old_computation = (first_term + second_term) * third_term
+    #assert old_computation == new_computation
+
+    return new_computation
+
+
+
 
 def get_third_line_of_eq(a,b,d,D,sigma, m_ab):
-    prod_val = 1
-    for l in range(d+1,D):
-        first_term = scipy.special.erf((1 - m_ab[a][b][l])/sigma)
-        second_term = scipy.special.erf(m_ab[a][b][l]/sigma)
-        third_term = np.sqrt(np.pi)*sigma/2.0
-        prod_val = prod_val * (first_term + second_term) * third_term
-    return prod_val
+    global third_line_stored
+    stored_val = get_stored_value(a,b,d, third_line_stored)
+    if not stored_val:
+        prod_val = 1
+        for l in range(d+1,D):
+            first_term = scipy.special.erf((1 - m_ab[a][b][l])/sigma)
+            second_term = scipy.special.erf(m_ab[a][b][l]/sigma)
+            third_term = np.sqrt(np.pi)*sigma/2.0
+            prod_val = prod_val * (first_term + second_term) * third_term
+
+
+        #if stored_val:
+        #    assert third_line_stored[a][b][d] == prod_val
+        #else:
+        third_line_stored[a][b][d] = prod_val
+
+        return prod_val
+    else:
+        return stored_val
+
+def get_stored_value(a,b,d, storage):
+    if a not in storage:
+        storage[a] = {}
+    if b not in storage[a]:
+        storage[a][b] = {}
+    if d not in storage[a][b]:
+        return None
+    # else, storage[a][b][d] exists, and we retrieve it
+    return storage[a][b][d]
+        
             
-def compute_m_ab(X):
+def compute_m_ab(X, sigma):
     m_ab = np.zeros((X.shape[0], X.shape[0], X.shape[1]))
     for i in range(X.shape[0]):
         for j in range(X.shape[0]):
             m_ab[i][j] = .5*(X[i] + X[j])
+
+    global second_line_second_part_stored
+    second_line_second_part_stored = scipy.special.erf(m_ab/sigma)
+    global first_line_stored
+    first_line_stored = {}
     return m_ab
 
 def sigma_sqrt2overN(n,d):
     sigma = np.sqrt(2.0)/n
     return new_main(d, n, sigma)
-
-
-
-
-
-
-
-
-def old_main(d, k, sigma, sigma_name):
-    start_time = time.time()
     
-    X = get_grid(d)
-    new_point = np.random.randint(0,len(X))
-
-    X_train = X[np.array([new_point])]
-    X_test = np.delete(X, new_point,axis=0)    
-
-    for i in range(k-1):
-        start_iter_time = time.time()
-        # update the kernel mtxs
-        if i == 0:
-            train_kernel_mtx, test_to_train_kernel_mtx = initialize_kernel_matrices(X_train, X_test, sigma)
-        else:
-            train_kernel_mtx, test_to_train_kernel_mtx, X_train, X_test = update_kernel_mtxs(train_kernel_mtx, 
-                                                                           test_to_train_kernel_mtx, X_train, X_test, new_point, sigma)
-
-        # compute unnorm probs        
-
-        #new_L = use_eigendecomp(train_kernel_mtx)
-        #new_v = np.linalg.solve(new_L, test_to_train_kernel_mtx.T)
-        #new_unnorm_probs = 1-np.einsum('ij,ji->i', new_v.T,new_v)
-        #unnorm_probs = new_unnorm_probs.real
-        #print unnorm_probs[0:20]
-
-        lower = True
-        L = scipy.linalg.cholesky(train_kernel_mtx, lower)
-        #print('old_L.shape: {}'.format(L.shape))
-        v = np.linalg.solve(L, test_to_train_kernel_mtx.T)
-        
-        unnorm_probs = 1-np.einsum('ij,ji->i', v.T,v)
-        
-        # get new point        
-        new_point = one_multinom_sample(unnorm_probs)
-        
-        if i > 100 or i == range(k-1)[-1]:
-            print("iteration: {}. this iter time: {}. total elapsed time: {}".format(i, 
-                                                            round(time.time() - start_iter_time,2), round(time.time() - start_time,2)))
-
-    
-    if k > 1:
-        X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
-
-    print "finished sampling n={} d={} sigma={}".format(k, d, sigma)
-    print("")
-
-    return X_train
-    
-
-def use_eigendecomp(train_kernel_mtx):
-    w, v = np.linalg.eig(train_kernel_mtx)
-    w = np.maximum(w, np.zeros(w.shape))
-    new_L = np.dot(np.dot(v, np.diag(np.sqrt(w))), v.T)
-    print new_L.shape
-    return new_L
-
-        
-def draw_many_samples():
-    ds = get_ds()
-    ns = get_ns()
-    sigma = get_sigma()
-    for d in ds:
-        for n in ns:
-            main(d, n, sigma, str(sigma))
 
 def one_sample_sigma_sqrt2overN(n,d):
     sigma = np.sqrt(2.0)/n
@@ -302,67 +291,17 @@ def one_sample_sigma_dover45(n,d):
     sigma = d/45.0
     return main(d, n, sigma, "Dover45")
 
-def draw_many_samples_sigma_sqrt2overn():
-    ds = get_ds()
+
+def many_samples_search_sigma():
+    from current_experiment import *
     ns = get_ns()
-    
-    for d in ds:
-        for n in ns:
-            sigma = np.sqrt(2.0)/n
-            main(d, n, sigma, "Sqrt2overN")
 
-
-def find_largest_sigma_for_worst_matrix(n,d):
-    # idea: find largest sigma s.t. cholesky decomposition works for the most degenerate possible matrix
-    # turns out, this is too conservative.
-    X = get_grid(d)
-
-    new_point = 0
-    X_train = X[np.array([new_point])]
-    X_test = np.delete(X, new_point,axis=0)
-    test_to_train_dist_mtx = build_distance_sq_matrix(X_test, X_train)
-
-    for i in range(n-1):
-        
-        new_point_dist, new_point = min((val, idx) for (idx, val) in enumerate(test_to_train_dist_mtx))
-        # add new point to train
-        X_train = np.append(X_train, X_test[np.array([new_point])], axis=0)
-        # remove new point from test
-        X_test = np.delete(X_test, new_point, axis=0)
-        test_to_train_dist_mtx = np.delete(test_to_train_dist_mtx, new_point, axis=0)
-        
-
-    train_dist_mtx = build_distance_sq_matrix(X_train, X_train)
-    
-    sigma = 100
-    cond_nums = []
-    while True:
-
-        train_kernel_mtx = build_rbf_kernel(train_dist_mtx, sigma)
-        cond_nums.append((np.linalg.cond(train_kernel_mtx),sigma))
-        # try cholesky
-        try:
-            L = scipy.linalg.cholesky(train_kernel_mtx, True)
-            break
-        except:
-            sigma = sigma / 1.1
-            
-    return sigma
-
-
-def one_sample_search_sigma_by_sampling(n,d):
-    print("you have to use the many_samples_search_sigma() function, not this one")
-    #raise NotImplementedError
-
-
-def old_many_samples_search_sigma():
-    #from current_experiment import *
-    ns = get_ns()
     ds = get_ds()
-    sampler = 'DPPPostVarSearchSigmaBySampling'
+    sampler = 'DPPExactSearchSigmaBySamplingCondTenToSix'
 
-    for d in ds:
-        for n in ns:
+
+    for n in ns:
+        for d in ds:
             # if samples exist, skip
             dir_path = 'pickled_data/dim={}/'.format(d)
             largest_sample_path = dir_path + 'sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,'{}_1'.format(get_num_samples()-1))
@@ -376,11 +315,20 @@ def old_many_samples_search_sigma():
             # while we can't draw a full set of samples without crashing, reduce sigma and try again
             while len(cur_samples) < get_num_samples():
                 try:
-                    cur_samples = many_samples_search_sigma_helper(n, d, sigma, get_num_samples())
-                except np.linalg.linalg.LinAlgError:
-                    print('sigma too large. reducing from {} to {}'.format(sigma, sigma / 1.1))
-                    sigma = sigma / 1.1
+                    # might crash if sigma is too large
+                    cur_samples = {}
+                    for snum in range(get_num_samples()):
+                        cur_samples[snum] = new_main(d,n, sigma)
 
+                except np.linalg.linalg.LinAlgError:
+                    print('sigma too large. reducing from {:.6f} to {:.6f} after {} being drawn'.format(float(sigma), sigma / 1.1, len(cur_samples)))
+                    sigma = sigma / 1.1
+                
+            print('')
+            print('-------------------------------------------------------------------------------------------------------------------')
+            print('successfully drew {} samples, with sigma={}, d={}, n={}.'.format(get_num_samples(), round(sigma,5), d, n))
+            print('-------------------------------------------------------------------------------------------------------------------')
+            print('')
             # save samples
             for i in range(get_num_samples()):
                 pickle_loc = dir_path + 'sampler={}_n={}_d={}_samplenum={}'.format(sampler,n,d,'{}_1'.format(i))
@@ -405,22 +353,22 @@ def old_many_samples_search_sigma():
             pickle.dump(sigmas, open(save_sigma_loc, 'wb'))
                     
                 
-
-def many_samples_search_sigma_helper(n,d, sigma, num_samples):
-    samples = {}
-    for snum in range(num_samples):
-        samples[snum] = main(d,n, sigma, '')
-    return samples
-
-
 def load_and_print_searched_sigmas():
     import pickle
-    file_loc = 'pickled_data/searched_sigma/DPPPostVarSearchSigmaBySampling'
+    file_loc = 'pickled_data/searched_sigma/DPPExactSearchSigmaBySamplingCondTenToSix'
     sigmas = pickle.load(open(file_loc))
     for d in sorted(sigmas):
         for n in sorted(sigmas[d]):
-            print '{}: {}, {}'.format(n, [round(x,5) for x in sigmas[d][n]], round(2**.5/n,5))
+            print 'd={},k={}: {}'.format(d,n, [round(x,5) for x in sigmas[d][n]])
         print('')
+
+    for d in sorted(sigmas):
+        
+        out_string = "d={}, [".format(d)
+        for n in sorted(sigmas[d]):
+            out_string += "[{},{}]".format(n,round(sigmas[d][n][0],5)) + ","
+        out_string += "]"
+        print(out_string)
 
 
 
@@ -430,8 +378,8 @@ if __name__ == "__main__":
 
     #for i in range(20):
     #    sigma_sqrt2overN(i+2,3)
-
+    #many_samples_search_sigma()
+    #load_and_print_searched_sigmas()
     new_main()
-    
 
 
