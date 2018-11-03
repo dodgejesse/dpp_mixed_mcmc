@@ -10,35 +10,7 @@ from current_experiment import *
 
 def get_sigma(n,d):
     d_to_n_to_sigma = {
-        2: 
-        {
-            3: 100,
-            4: 90.9090909091,
-            5: 90.9090909091,
-            6: 75.1314800902,
-            7: 68.3013455365,
-            8: 56.4473930054,
-            10: 51.3158118231,
-            11: 51.3158118231,
-            12: 51.3158118231,
-            14: 1.1338191753,
-            16: 1.1338191753,
-            18: 1.1338191753,
-            20: 0.298570025588,
-            23: 0.203927344846,
-            26: 0.203927344846,
-            29: 0.139285120446,
-            33: 0.139285120446,
-            38: 0.095133611397,
-            42: 0.0714752903058,
-            48: 0.0649775366417,
-            54: 0.0714752903058,
-            61: 0.059070487856,
-            69: 0.0443805318227,
-            78: 0.0403459380207,
-            88: 0.0403459380207,
-            100: 0.0333437504303,
-        }
+        
     }
 
 
@@ -61,8 +33,8 @@ def set_global_storage_objects():
 
 
 # to make this faster, precompute M_i_ab
-def new_main(D=3,k=100,sigma=0.19814):
-    debug_print = True
+def new_main(D=5,k=100,sigma=0.19814):
+    debug_print = False
     import time
     epsilon = 0.0001
     max_cond_num = 10**6
@@ -154,17 +126,14 @@ def get_prob(x_i, x_i_d, X, D, sigma, M_iK_inv, m_ab):
 def get_first_line_of_eq(x_i, a, b, D, sigma, M_iK_inv, m_ab):
     global first_line_stored
     d = len(x_i)
-    # the d,a,b order is a hack!
-    import pdb; pdb.set_trace()
-    stored_val = get_stored_value(d,a,b, first_line_stored)
-    
-    if not stored_val:
 
-        sum_up_to_d_minus_one = 0
-        for r in range(d):
-            sum_up_to_d_minus_one += (x_i[r] - m_ab[a][b][r])**2
-        expd_sum = np.exp(-sum_up_to_d_minus_one/sigma**2)
-        return_val = expd_sum * M_iK_inv[a][b]
+    #import pdb; pdb.set_trace()
+    if d not in first_line_stored:
+        #sum_up_to_d_minus_one = 0
+        #for r in range(d):
+        #    sum_up_to_d_minus_one += (x_i[r] - m_ab[a][b][r])**2
+        #expd_sum = np.exp(-sum_up_to_d_minus_one/sigma**2)
+        #return_val = expd_sum * M_iK_inv[a][b]
 
         diffs = (x_i - m_ab[:,:,0:d])**2
         sum_diffs = diffs.sum(axis=2)
@@ -185,15 +154,14 @@ def get_first_line_of_eq(x_i, a, b, D, sigma, M_iK_inv, m_ab):
 
         #first_line_stored[a][b][d] = return_val
         
-        assert return_val == final[a][b]
+        #assert return_val == final[a][b]
 
 
 
-        return return_val
-    else:
-        if len(m_ab) > 3 and len(x_i) > 1:
-            import pdb; pdb.set_trace()
-        return stored_val
+
+    #if len(m_ab) > 3 and len(x_i) > 1:
+    #    import pdb; pdb.set_trace()
+    return first_line_stored[d][a][b]
 
 def get_second_line_of_eq(x_i_d, a,b,d,sigma, m_ab):
     #if a > 3 and b > 3:
@@ -212,15 +180,6 @@ def get_second_line_of_eq(x_i_d, a,b,d,sigma, m_ab):
 
 
     new_computation =  second_line_stored[a][b]
-    
-
-    #first_term = scipy.special.erf((x_i_d - m_ab[a][b][d])/sigma)
-    #second_term = scipy.special.erf(m_ab[a][b][d]/sigma)
-    #third_term = np.sqrt(np.pi)*sigma/2.0
-
-    #old_computation = (first_term + second_term) * third_term
-    #assert old_computation == new_computation
-
     return new_computation
 
 
@@ -238,9 +197,6 @@ def get_third_line_of_eq(a,b,d,D,sigma, m_ab):
             prod_val = prod_val * (first_term + second_term) * third_term
 
 
-        #if stored_val:
-        #    assert third_line_stored[a][b][d] == prod_val
-        #else:
         third_line_stored[a][b][d] = prod_val
 
         return prod_val
@@ -379,7 +335,7 @@ if __name__ == "__main__":
     #for i in range(20):
     #    sigma_sqrt2overN(i+2,3)
     #many_samples_search_sigma()
-    #load_and_print_searched_sigmas()
-    new_main()
+    load_and_print_searched_sigmas()
+    #new_main()
 
 

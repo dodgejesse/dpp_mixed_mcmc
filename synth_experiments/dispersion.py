@@ -2,6 +2,9 @@ import scipy as sp
 import scipy.spatial as spatial
 import pickle
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 import time
@@ -15,10 +18,19 @@ import time
 # also, discrepancy can be computed in less than a second when d=2 up to n=500
 
 def main():
+    import pdb; pdb.set_trace()
     cur_sample = get_sample(d=2, n=29, snum='63_1')
     
     start_time = time.time()
+    #vor = spatial.Voronoi(cur_sample,qhull_options='Qb0:0 QB0:1 Qb1:0 QBk:1')
     vor = spatial.Voronoi(cur_sample)
+
+
+    bounded_lines = get_bounded_lines(vor)
+    unbounded_lines = get_unbounded_lines(vor)
+    print_lines(bounded_lines, unbounded_lines)
+    print_vor(vor)    
+
     print('took {} seconds'.format(time.time() - start_time))
 
     vor = bounded_voronoi(cur_sample)
@@ -74,7 +86,7 @@ def bounded_voronoi(points):
     # Compute Voronoi
     qhull_options = 'Qbb Qc Qz Qx Q12' if len(points[0]) > 4 else 'Qbb Qc Qz Q12'
     vor = sp.spatial.Voronoi(all_points, qhull_options=qhull_options)
-
+    
     vor.filtered_vertices = []
     for vertex in vor.vertices:
         vertex_in_cube = True
@@ -202,12 +214,12 @@ def print_bounded_vor(vor):
     
     ax.set_xlim([-0.1, 1.1])
     ax.set_ylim([-0.1, 1.1])
-    plt.show()
+    plt.savefig('plots/voronoi/vor_diag_bound.pdf', bbox_inches='tight')
 
 # prints a non-bounded 2-d voronoi diagram
 def print_vor(vor):
     spatial.voronoi_plot_2d(vor)
-    plt.show()
+    plt.savefig('plots/voronoi/full_vor_diag_bound.pdf', bbox_inches='tight')
 
 # prints the lines found in the voronoi diagram
 def print_lines(bounded_lines, unbounded_lines):
@@ -218,15 +230,25 @@ def print_lines(bounded_lines, unbounded_lines):
 
     print('')
     print('unbounded_lines')
-    print(unbounded_lines)
+    for line in unbounded_lines:
+        print(line)
+    #print(unbounded_lines)
     
 # finds the bounded lines in the voronoi diagram
 def get_bounded_lines(vor):
     line_segments = []
+
+    import pdb; pdb.set_trace()
+
     for simplex in vor.ridge_vertices:
         simplex = np.asarray(simplex)
         if np.all(simplex >= 0):
-            line_segments.append([(x, y) for x, y in vor.vertices[simplex]])
+            #cur_point = []
+            #for i in range(len(vor.vertices[simplex])):
+            #    cur_point.append(vor.vertices[simplex][i])
+            #line_segments.append(cur_point)
+            #line_segments.append([(x, y) for x, y in vor.vertices[simplex]])
+            line_segments.append([tuple(coords) for coords in vor.vertices[simplex]])
 
     return line_segments
 
