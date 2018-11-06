@@ -63,7 +63,7 @@ def get_n_max():
 def get_ns():
     n_max = get_n_max()
     n_min = get_n_min()
-    ns = [int(np.exp(x)) for x in np.linspace(np.log(n_min), np.log(n_max), 20)]
+    ns = [int(np.exp(x)) for x in np.linspace(np.log(n_min), np.log(n_max), 30)]
     ns = sorted(list(set(ns)))
     return ns
     
