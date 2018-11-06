@@ -115,8 +115,12 @@ def compute_individual_errors(samplers, eval_measures, ns_try, ds_try):
                                                                 pkl_file = open(in_file_name)
                                                                 #print in_file_name
                                                                 cur_sample = pickle.load(pkl_file)
+
                                                                 # compute eval
-                                                                cur_evals[d][n][sample_num] = eval_measures[eval_measure](cur_sample)
+                                                                if sampler.endswith("Dispersion"):
+                                                                    cur_evals[d][n][sample_num] = cur_sample[1]
+                                                                else:
+                                                                    cur_evals[d][n][sample_num] = eval_measures[eval_measure](cur_sample)                    
                                                                 #print n, d, cur_sample
                                                                 #print(cur_evals[d][n][sample_num])
                                                                 
