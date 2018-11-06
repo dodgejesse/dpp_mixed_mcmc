@@ -147,6 +147,8 @@ def draw_samples(samplers, ns, ds, sample_num):
                                 if os.path.exists(pickle_loc):
                                         continue
                                 X = samplers[sampler]['fn'](n,d)
+                                if X is None:
+                                        continue
                                 #print("d={}, n={}".format(d,n))
 
                                 if not os.path.isdir(dir_path):

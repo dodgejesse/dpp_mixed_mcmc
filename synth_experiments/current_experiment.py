@@ -11,11 +11,11 @@ import best_known_dispersion
 import exact_dpp_sampling
 
 def get_samplers():
-    samplers = {'SobolSampler':{'fn': SobolSampler,'color': 'g'},
+    samplers = {#'SobolSampler':{'fn': SobolSampler,'color': 'g'},
                 #'RecurrenceSampler': {'fn': RecurrenceSampler,'color': 'r'},
                 #'SobolSamplerNoNoise': {'fn': SobolSamplerNoNoise,'color': 'b'},
                 #'DPPnsquared': {'fn': dpp_rbf_unitcube.DPPSampler, 'color': 'k'},
-                'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
+                #'UniformSampler': {'fn': np.random.rand, 'color': 'b'},
                 #'DPPNarrow': {'fn': dpp_rbf_unitcube.DPPNarrow, 'color': 'm'},
                 #'DPPVNarrow': {'fn': dpp_rbf_unitcube.DPPVNarrow, 'color': 'm'}
                 #'DPPVVNarrow': {'fn': dpp_rbf_unitcube.DPPVVNarrow, 'color': 'm'},
@@ -29,8 +29,8 @@ def get_samplers():
                 #'DPPNsquaredOverD': {'fn': dpp_rbf_unitcube.DPPNsquaredOverD, 'color': 'm'},
                 #'DPPSearchSigma': {'fn': dpp_rbf_unitcube.DPPSearchSigma, 'color': 'm'},
                 
-                'NiederreiterSampler': {'fn': Niederreiter, 'color':'y'},
-                'NiederreiterSamplerNoNoise': {'fn': NiederreiterNoNoise, 'color':'c'},
+                #'NiederreiterSampler': {'fn': Niederreiter, 'color':'y'},
+                #'NiederreiterSamplerNoNoise': {'fn': NiederreiterNoNoise, 'color':'c'},
                 
                 #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
                 #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overN, 'color': 'm'},
@@ -41,6 +41,7 @@ def get_samplers():
                 #'DPPPostVarSearchSigmaBySampling': {'fn':sequentially_sample_post_var.one_sample_search_sigma_by_sampling, 'color': 'm'},
                 #'DPPSeqPostSigma{}'.format(str(get_sigma())[2:]): {'fn':sequentially_sample_post_var.draw_many_samples, 'color': 'm'},
                 #'DPPExactSigmaSqrt2overN': {'fn': exact_dpp_sampling.sigma_sqrt2overN, 'color': 'r'},
+                'DPPExactPredSigmaCondTenToSixDispersion': {'fn': DPPExactPredSigmaCondTenToSixDispersion, 'color': 'r'},
     }
     return samplers
 
@@ -62,12 +63,12 @@ def get_n_max():
 def get_ns():
     n_max = get_n_max()
     n_min = get_n_min()
-    ns = [int(np.exp(x)) for x in np.linspace(np.log(n_min), np.log(n_max), 30)]
+    ns = [int(np.exp(x)) for x in np.linspace(np.log(n_min), np.log(n_max), 20)]
     ns = sorted(list(set(ns)))
     return ns
     
 def get_ds():
-    ds = [1,2,3,5]#[40,100, 500]#[1,2,3,4]#[2,3,5,7]#[2,3,5,10,15,25,35]
+    ds = [2]#[1,2,3,5]
     return ds
 
 
@@ -98,16 +99,16 @@ def get_num_samples():
 ###################### the evaluation measures ######################
 
 def get_discrepency(X):
-        worse_value = 0.
-	for x in X:
-		p = np.exp(np.sum(np.log(x)))
-		p_hat = 0.
-		for y in X:
-			p_hat += float(all(y < x))
-		p_hat /= len(X)
-		worse_value = max(worse_value, abs(p-p_hat))
-		worse_value = max(worse_value, abs(p-p_hat-1./len(X)))
-	return worse_value
+    worse_value = 0.
+    for x in X:
+        p = np.exp(np.sum(np.log(x)))
+        p_hat = 0.
+        for y in X:
+            p_hat += float(all(y < x))
+        p_hat /= len(X)
+        worse_value = max(worse_value, abs(p-p_hat))
+        worse_value = max(worse_value, abs(p-p_hat-1./len(X)))
+    return worse_value
 
 # computes a bounded voronoi diagram, 
 # then returns the smallest distance between the points X and the voronoi vertices
@@ -120,32 +121,32 @@ def get_projected_1d_dispersion(X):
     
 
 def get_min_norm(X, order):
-	return min(np.linalg.norm(X, ord=order, axis=1))
+    return min(np.linalg.norm(X, ord=order, axis=1))
 
 def get_min_l2_norm(X):
-	#smallest_value = float('inf')
-	#for x in X:
-	#	tmp = numpy.dot(x, x)
-	#	smallest_value = min(smallest_value, tmp)
-	#return smallest_value
-	return get_min_norm(X, 2)
+    #smallest_value = float('inf')
+    #for x in X:
+    #	tmp = numpy.dot(x, x)
+    #	smallest_value = min(smallest_value, tmp)
+    #return smallest_value
+    return get_min_norm(X, 2)
 
 def get_min_l1_norm(X):
-	#smallest_value = float('inf')
-	#for x in X:
-#		tmp = numpy.dot(x, numpy.sign(x))
-#		smallest_value = min(smallest_value, tmp)0
-#	return smallest_value
-
-	return get_min_norm(X, 1)
+    #smallest_value = float('inf')
+    #for x in X:
+    #		tmp = numpy.dot(x, numpy.sign(x))
+    #		smallest_value = min(smallest_value, tmp)0
+    #	return smallest_value
+    
+    return get_min_norm(X, 1)
 
 def get_min_l2_norm_center(X):
-	center = np.ones(X.shape)*.5
-	return get_min_norm(X-center, 2)
+    center = np.ones(X.shape)*.5
+    return get_min_norm(X-center, 2)
 
 def get_min_l1_norm_center(X):
-	center = np.ones(X.shape)*.5
-	return get_min_norm(X-center, 1)
+    center = np.ones(X.shape)*.5
+    return get_min_norm(X-center, 1)
 
 
 def get_avg_min_to_uniformly_sampled_point(X):
@@ -172,6 +173,13 @@ def get_min_to_uniformly_sampled_point(X):
 
 ############################ the samplers ############################
 
+def DPPExactPredSigmaCondTenToSixDispersion(n, d):
+    X = exact_dpp_sampling.predicted_sigmas_tentosix(n,d)
+    if X is None:
+        return None
+    else:
+        return X, get_dispersion(X)
+
 def Niederreiter(n, d):
     X = best_known_dispersion.get_sequence(n,d)
     U = np.random.rand(d)
@@ -187,51 +195,51 @@ def NiederreiterNoNoise(n, d):
 
 # adds uniform noise in [0,1], then for those results above 1 it subtracts 1
 def SobolSampler(n, d):
-	X = sobol.i4_sobol_generate(d, n)
-	U = np.random.rand(d)
-	X += U
-	X -= np.floor(X)
-	return X
-
+    X = sobol.i4_sobol_generate(d, n)
+    U = np.random.rand(d)
+    X += U
+    X -= np.floor(X)
+    return X
+    
 # this method is to try and get sobol in D > 40
 # adds uniform noise in [0,1], then for those results above 1 it subtracts 1
 def SobolSamplerHighD(n, d):
-        assert d in [5, 50, 100, 500]
-        assert n < 1025
+    assert d in [5, 50, 100, 500]
+    assert n < 1025
         
-        with open('/home/ec2-user/software/Sobol.jl/test/results/exp_results_{}'.format(d), 'r') as f:
-                lines = f.readlines()
-        in_data = []
-        counter = 0
-        for line in lines:
-                counter += 1
-                if counter == 1 or counter == 2:
-                        continue
+    with open('/home/ec2-user/software/Sobol.jl/test/results/exp_results_{}'.format(d), 'r') as f:
+        lines = f.readlines()
+    in_data = []
+    counter = 0
+    for line in lines:
+        counter += 1
+        if counter == 1 or counter == 2:
+            continue
 
 
-                in_data.append(line.split(" ")[:-1])
-                if len(in_data) == n:
-                        break
-        X = np.asarray(in_data, dtype=float)
+        in_data.append(line.split(" ")[:-1])
+        if len(in_data) == n:
+            break
+    X = np.asarray(in_data, dtype=float)
         
 
-	U = np.random.rand(d)
-	X += U
-	X -= np.floor(X)
-	return X
+    U = np.random.rand(d)
+    X += U
+    X -= np.floor(X)
+    return X
 
 def SobolSamplerNoNoise(n, d):
-	X = sobol.i4_sobol_generate(d, n)
-	return X
+    X = sobol.i4_sobol_generate(d, n)
+    return X
 
 
 PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199]
 
 def RecurrenceSampler(n, d):
-	X = np.zeros((n, d))
-	X[0] = np.random.rand(d)
-	for i in range(1,n):
-		for k in range(d):
-			X[i, k] = X[0,k] + i*np.sqrt(PRIMES[k])
-			X[i, k] -= int(X[i, k])
-	return np.array(X)
+    X = np.zeros((n, d))
+    X[0] = np.random.rand(d)
+    for i in range(1,n):
+        for k in range(d):
+            X[i, k] = X[0,k] + i*np.sqrt(PRIMES[k])
+            X[i, k] -= int(X[i, k])
+    return np.array(X)

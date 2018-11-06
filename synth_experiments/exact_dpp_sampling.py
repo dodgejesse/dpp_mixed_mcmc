@@ -5,14 +5,7 @@ import scipy.linalg
 import pickle
 import sys
 from current_experiment import *
-
-
-
-def get_sigma(n,d):
-    d_to_n_to_sigma = {
-        
-    }
-
+import predicted_sigmas
 
     
     
@@ -226,6 +219,13 @@ def compute_m_ab(X, sigma):
     first_line_stored = {}
     return m_ab
 
+def predicted_sigmas_tentosix(n,d):
+    sigma = predicted_sigmas.get_sigma(n,d)
+    if sigma is None:
+        return None
+    else:
+        return new_main(d,n,sigma)
+
 def sigma_sqrt2overN(n,d):
     sigma = np.sqrt(2.0)/n
     return new_main(d, n, sigma)
@@ -251,7 +251,6 @@ def one_sample_sigma_dover45(n,d):
 def many_samples_search_sigma():
     from current_experiment import *
     ns = get_ns()
-
     ds = get_ds()
     sampler = 'DPPExactSearchSigmaBySamplingCondTenToSix'
 
@@ -334,8 +333,8 @@ if __name__ == "__main__":
 
     #for i in range(20):
     #    sigma_sqrt2overN(i+2,3)
-    #many_samples_search_sigma()
-    load_and_print_searched_sigmas()
+    many_samples_search_sigma()
+    #load_and_print_searched_sigmas()
     #new_main()
 
 

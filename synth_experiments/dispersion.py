@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import sys
 import time
 
+import current_experiment
+
 
 # notes: 
 # current implementation (reflecting points across all faces of the unit cube) works up to about d=6, n=50.
@@ -18,25 +20,50 @@ import time
 # also, discrepancy can be computed in less than a second when d=2 up to n=500
 
 def main():
-    import pdb; pdb.set_trace()
-    cur_sample = get_sample(d=2, n=29, snum='63_1')
-    
-    start_time = time.time()
-    #vor = spatial.Voronoi(cur_sample,qhull_options='Qb0:0 QB0:1 Qb1:0 QBk:1')
-    vor = spatial.Voronoi(cur_sample)
+    #import pdb; pdb.set_trace()
+    d = 5
+    snum = '11_1'
+    sampler= "SobolSampler"
+    for n in current_experiment.get_ns():
+        if n < 10: 
+            continue
+        #n = 100
+        #import pdb; pdb.set_trace()
 
+        cur_sample = get_sample(d=d, n=n, snum=snum, sampler=sampler)
+        
+        start_time = time.time()
+        #vor = spatial.Voronoi(cur_sample,qhull_options='Qb0:0 QB0:1 Qb1:0 QBk:1')
+        #vor = spatial.Voronoi(cur_sample)
+        
+        
+        #bounded_lines = get_bounded_lines(vor)
+        #unbounded_lines = get_unbounded_lines(vor)
+        #print_lines(bounded_lines, unbounded_lines)
+        #print_vor(vor)    
+        
+        #print('took {} seconds'.format(time.time() - start_time))
+        
+        vor = bounded_voronoi(cur_sample,subset=False)
+        end_full_vor = time.time()
+        full_disp = compute_dispersion(vor)
+        end_full_disp = time.time()
+        subset_vor = bounded_voronoi(cur_sample,subset=True)
+        end_subset_vor = time.time()
+        subset_disp = compute_dispersion(subset_vor)
+        end_subset_disp = time.time()
+        print("full vor: {:.6f}, full disp: {:.6f}, points: {}".format(end_full_vor - start_time, end_full_disp - end_full_vor, len(vor.points)))
 
-    bounded_lines = get_bounded_lines(vor)
-    unbounded_lines = get_unbounded_lines(vor)
-    print_lines(bounded_lines, unbounded_lines)
-    print_vor(vor)    
-
-    print('took {} seconds'.format(time.time() - start_time))
-
-    vor = bounded_voronoi(cur_sample)
-    print_bounded_vor(vor)
-    
-    
+        print("subs vor: {:.6f}, subs disp: {:.6f}, points: {}".format(end_subset_vor - end_full_disp,
+                                                                       end_subset_disp - end_subset_vor, len(subset_vor.points)))
+        
+        assert round(full_disp - subset_disp, 8) == 0
+        #print("same dispersion: {}".format(same_disp))
+        print("")
+        
+        #print_bounded_vor(vor, d, n, snum, False)
+        #print_bounded_vor(subset_vor, d, n, snum, True)
+        
 # loads a sample from disk, usually for debugging
 def get_sample(d='4', sampler='UniformSampler', n='88', snum='3_1'):
     in_file_name = './pickled_data/dim={}/sampler={}_n={}_d={}_samplenum={}'.format(d, sampler, n,d, snum)
@@ -66,13 +93,40 @@ def one_dim_vor(unsorted_points):
 # this function taken from 
 # https://stackoverflow.com/questions/28665491/getting-a-bounded-polygon-coordinates-from-voronoi-cells#
 # and adjusted to work with dimensions other than 2
-def bounded_voronoi(points):
+def bounded_voronoi(points, subset=True):
     if len(points[0]) == 1:
         return one_dim_vor(points)
     eps = get_epsilon(len(points[0]))
 
+    if len(points) < 20:
+        subset = False
     # Mirror points
+    if subset:
+        subset_points = find_subset_points(points)
+        vor = get_smarter_bounded_vor(subset_points, points)
+    else:
+        vor = get_naive_bounded_vor(points)
+
+    filter_vertices(vor, eps, points)
+    return vor
+
+def filter_vertices(vor, eps, points):
+    vor.filtered_vertices = []
+    for vertex in vor.vertices:
+        vertex_in_cube = True
+        for d in range(len(vertex)):
+            if -eps > vertex[d] or vertex[d] > 1 + eps:
+                vertex_in_cube = False
+        if vertex_in_cube:
+            vor.filtered_vertices.append(vertex)
+
+    vor.filtered_vertices = np.array(vor.filtered_vertices)
+    vor.filtered_points = points
+
+
+def get_naive_bounded_vor(points):
     all_points = np.copy(points)
+
     for d in range(len(points[0])):
         new_points_down = np.copy(points)        
         new_points_down[:, d] = -new_points_down[:, d]
@@ -86,20 +140,69 @@ def bounded_voronoi(points):
     # Compute Voronoi
     qhull_options = 'Qbb Qc Qz Qx Q12' if len(points[0]) > 4 else 'Qbb Qc Qz Q12'
     vor = sp.spatial.Voronoi(all_points, qhull_options=qhull_options)
-    
-    vor.filtered_vertices = []
-    for vertex in vor.vertices:
-        vertex_in_cube = True
-        for d in range(len(vertex)):
-            if -eps > vertex[d] or vertex[d] > 1 + eps:
-                vertex_in_cube = False
-        if vertex_in_cube:
-            vor.filtered_vertices.append(vertex)
-
-    vor.filtered_vertices = np.array(vor.filtered_vertices)
-    vor.filtered_points = points
-
     return vor
+
+def get_smarter_bounded_vor(subset_points, points):
+    all_points = np.copy(points)
+    for d in range(len(subset_points)):
+        new_points_down = np.copy(subset_points[d][0])
+        new_points_down[:,d] = -new_points_down[:,d]
+        
+        new_points_up = np.copy(subset_points[d][1])
+        new_points_up[:, d] = 1 + (1 - new_points_up[:, d])
+        
+        all_points = np.append(all_points, new_points_down, axis=0)
+        all_points = np.append(all_points, new_points_up, axis=0)
+
+    # Compute Voronoi
+    qhull_options = 'Qbb Qc Qz Qx Q12' if len(points[0]) > 4 else 'Qbb Qc Qz Q12'
+    vor = sp.spatial.Voronoi(all_points, qhull_options=qhull_options)
+    return vor
+        
+
+def find_subset_points(points):
+    qhull_options = 'Qbb Qc Qz Qx Q12' if len(points[0]) > 4 else 'Qbb Qc Qz Q12'
+    vor = sp.spatial.Voronoi(points, qhull_options=qhull_options)
+    #import pdb; pdb.set_trace()
+    points_to_copy = [[[],[]] for _ in range(len(points[0]))]
+    for i in range(len(vor.points)):
+        cur_vertices_indices = vor.regions[vor.point_region[i]]
+        dims_to_add = [set(),set()]
+        for j in cur_vertices_indices:
+            if j == -1:
+                # add to all dims, cause who knows which direction the infinite line points
+                dims_to_add[0] = range(len(points_to_copy))
+                dims_to_add[1] = range(len(points_to_copy))                
+                break
+            else:
+                cur_vertex = vor.vertices[j]
+
+                for d in range(len(points_to_copy)):
+                    if cur_vertex[d] > 1:
+                        dims_to_add[1].add(d)
+                    elif cur_vertex[d] < 0:
+                        dims_to_add[0].add(d)
+
+
+
+        # add the point to the relevant dims
+        for pos_dim in dims_to_add[1]:
+            points_to_copy[pos_dim][1].append(vor.points[i])
+        for neg_dim in dims_to_add[0]:
+            points_to_copy[neg_dim][0].append(vor.points[i])
+
+
+
+    points_to_copy = np.asarray(points_to_copy)
+
+
+    #for d in range(len(points_to_copy)):
+    #    print(len(points_to_copy[d][0]), len(points_to_copy[d][1]))
+        
+
+
+    return points_to_copy
+
 
 # the function which computes the dispersion of a set of points
 def compute_dispersion(vor):
@@ -143,7 +246,7 @@ def filter_regions(vor):
     eps = get_epsilon(len(vor.points[0]))
     # Filter regions
     fil_reg_start_time = time.time()
-    sys.stdout.write('filtering the {} regions... '.format(len(vor.regions)))
+    #sys.stdout.write('filtering the {} regions... '.format(len(vor.regions)))
     regions = []
     for region in vor.regions:
         
@@ -160,12 +263,12 @@ def filter_regions(vor):
                         break
         if region != [] and flag:
             regions.append(region)
-    sys.stdout.write('done! took {} seconds.\n'.format(time.time() - fil_reg_start_time))
+    #sys.stdout.write('done! took {} seconds.\n'.format(time.time() - fil_reg_start_time))
     vor.filtered_regions = regions
 
 
 # prints a 2-d voronoi diagram within the unit cube.
-def print_bounded_vor(vor):
+def print_bounded_vor(vor, d, n, snum, subset):
     filter_regions(vor)
     fig = plt.figure()
     ax = fig.gca()
@@ -186,15 +289,15 @@ def print_bounded_vor(vor):
 
     
 
-    print('')
-    print('minimum distances:')
-    print min_dists
-    print('')
-    print('tree.data:')
-    print tree.data
-    print('')
-    print('vor.filtered_vertices')
-    print(vor.filtered_vertices)
+    #print('')
+    #print('minimum distances:')
+    #print min_dists
+    #print('')
+    #print('tree.data:')
+    #print tree.data
+    #print('')
+    #print('vor.filtered_vertices')
+    #print(vor.filtered_vertices)
     
 
     max_min_dist = -1
@@ -203,8 +306,8 @@ def print_bounded_vor(vor):
         if min_dists[0][i] > max_min_dist:
             max_min_dist = min_dists[0][i]
             index = i
-    print('largest found distance, and index:')
-    print(max_min_dist, index)
+    #print('largest found distance, and index:')
+    #print(max_min_dist, index)
     first_point = vor.filtered_points[min_dists[1][index]]
     second_point = vor.filtered_vertices[index]
     x_vals = [first_point[0], second_point[0]]
@@ -214,7 +317,7 @@ def print_bounded_vor(vor):
     
     ax.set_xlim([-0.1, 1.1])
     ax.set_ylim([-0.1, 1.1])
-    plt.savefig('plots/voronoi/vor_diag_bound.pdf', bbox_inches='tight')
+    plt.savefig('plots/voronoi/bounded_vor_d={}_n={}_snum={}_subset={}.pdf'.format(d,n,snum,subset), bbox_inches='tight')
 
 # prints a non-bounded 2-d voronoi diagram
 def print_vor(vor):
