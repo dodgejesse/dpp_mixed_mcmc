@@ -68,7 +68,7 @@ def get_ns():
     return ns
     
 def get_ds():
-    ds = [2]#[1,2,3,5]
+    ds = [3,5]#[1,2,3,5]
     return ds
 
 
