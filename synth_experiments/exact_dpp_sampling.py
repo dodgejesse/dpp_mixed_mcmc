@@ -10,12 +10,12 @@ import predicted_sigmas
     
     
 def build_rbf_kernel(D, sigma):
-	gamma = .5/(sigma*sigma)
-        kernel_mtx = np.exp(-gamma*D)
-	return kernel_mtx
+    gamma = .5/(sigma*sigma)
+    kernel_mtx = np.exp(-gamma*D)
+    return kernel_mtx
 
 def build_distance_sq_matrix(X, Z):
-	return np.outer(np.sum(X**2, axis=1), np.ones(Z.shape[0])) -2*np.dot(X, Z.T) + np.outer(np.ones(X.shape[0]), np.sum(Z**2, axis=1))
+    return np.outer(np.sum(X**2, axis=1), np.ones(Z.shape[0])) -2*np.dot(X, Z.T) + np.outer(np.ones(X.shape[0]), np.sum(Z**2, axis=1))
 
 
 def set_global_storage_objects():
@@ -221,10 +221,19 @@ def compute_m_ab(X, sigma):
 
 def predicted_sigmas_tentosix(n,d):
     sigma = predicted_sigmas.get_sigma(n,d)
+    
     if sigma is None:
         return None
     else:
-        return new_main(d,n,sigma)
+        to_return = None
+        while to_return is None:
+            try:
+                to_return = new_main(d,n,sigma)
+            except np.linalg.linalg.LinAlgError:
+                print("sigma too big! trying again.")
+            
+
+        return to_return
 
 def sigma_sqrt2overN(n,d):
     sigma = np.sqrt(2.0)/n
