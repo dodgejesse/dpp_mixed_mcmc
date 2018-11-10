@@ -131,8 +131,8 @@ def get_one_plot_data(data, measure, d):
 
 
 def multiplot_measure_by_d(avgs, stds, num_samples):
-    matplotlib.rcParams.update({'font.size':12})
-    fig = plt.figure(figsize=(12,6))
+    matplotlib.rcParams.update({'font.size':4})
+    fig = plt.figure(figsize=(12,3))
     #fig.suptitle("Columns, left to right: Star discrepancy, squared distance from the origin, and squared distance from the center.\n" + 
     #             "K between 1 and 55. Shaded is 45th to 55th percentile.\n" +
     #             "DPPs are using an RBF kernel: DPP-rbf-narrow has variance 1/10, DPP-rbf-wide has variance d/2.", 

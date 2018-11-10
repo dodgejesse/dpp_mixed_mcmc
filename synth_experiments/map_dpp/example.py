@@ -9,9 +9,10 @@ def find_dpp_max(k, d, sigma, logging):
   ks = tf.Variable(tf.random_uniform([k,d]))
   ks_init = ks.initializer
 
+
   with tf.Session() as sess:
     sess.run(ks_init)
-
+    initial_points = ks.eval()
     sq_dists = (-0.5 * tf.reduce_sum(tf.pow(tf.reshape(ks,[k,1,d]) - tf.reshape(ks,[1,k,d]),2),axis=2)) / sigma ** 2
     my_kernel = tf.exp(sq_dists)
     cur_det = -tf.linalg.det(my_kernel)
@@ -32,31 +33,32 @@ def find_dpp_max(k, d, sigma, logging):
 
     #try:
     optimizer.minimize()
-    logging['minimized'].append(True)
+    #logging['minimized'].append(True)
     #except:
-    logging['minimized'].append(False)
+    #logging['minimized'].append(False)
     
     logging['end_det'].append(cur_det.eval())
     logging['det_diff'].append(-cur_det.eval() + starting_det)
     logging['end_ks'].append(ks.eval())
-
+    logging['ks_diffs'].append(ks.eval() - initial_points)
     
 
 def init_logging():
   logging = {}
-  things_to_log = ['start_det', 'avg_grad', 'minimized', 'end_det', 'det_diff', 'end_ks']
+  things_to_log = ['start_det', 'avg_grad', 'minimized', 'end_det', 'det_diff', 'end_ks', 'ks_diffs']
   for thing in things_to_log:
     logging[thing] = []
   return logging
 
 
-k = 5
+k = 10
 d = 3
 sigma = 1
 logging = init_logging()
 tf.set_random_seed(1234)
-for i in range(10):
+for i in range(5):
   #import pdb; pdb.set_trace()
-  find_dpp_max(k,d,sigma,logging) 
+  find_dpp_max(k,d,sigma,logging)
 print logging['det_diff']
-
+for item in logging['ks_diffs']:
+  print(item)

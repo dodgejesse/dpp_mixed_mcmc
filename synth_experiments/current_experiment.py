@@ -29,8 +29,8 @@ def get_samplers():
                 #'DPPNsquaredOverD': {'fn': dpp_rbf_unitcube.DPPNsquaredOverD, 'color': 'm'},
                 #'DPPSearchSigma': {'fn': dpp_rbf_unitcube.DPPSearchSigma, 'color': 'm'},
                 
-                'NiederreiterSampler': {'fn': Niederreiter, 'color':'y'},
-                'NiederreiterSamplerNoNoise': {'fn': NiederreiterNoNoise, 'color':'c'},
+                'NiederreiterSampler': {'fn': Niederreiter, 'color':'c'},
+                #'NiederreiterSamplerNoNoise': {'fn': NiederreiterNoNoise, 'color':'y'},
                 
                 #'DPPSigma{}'.format(get_sigma()): {'fn':functools.partial(dpp_rbf_unitcube.DPPSigma, sigma=get_sigma()), 'color': 'm'},
                 #'DPPPostVarSigmaSqrt2overN': {'fn':sequentially_sample_post_var.one_sample_sigma_sqrt2overN, 'color': 'm'},
@@ -65,6 +65,7 @@ def get_ns():
     n_min = get_n_min()
     ns = [int(np.exp(x)) for x in np.linspace(np.log(n_min), np.log(n_max), 30)]
     ns = sorted(list(set(ns)))
+    ns.remove(38)
     return ns
     
 def get_ds():

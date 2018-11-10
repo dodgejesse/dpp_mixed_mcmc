@@ -26,8 +26,8 @@ def set_global_storage_objects():
 
 
 # to make this faster, precompute M_i_ab
-def new_main(D=5,k=100,sigma=0.19814):
-    debug_print = False
+def new_main(D=5,k=200,sigma=0.019814):
+    debug_print = True
     import time
     epsilon = 0.0001
     max_cond_num = 10**6
@@ -342,8 +342,8 @@ if __name__ == "__main__":
 
     #for i in range(20):
     #    sigma_sqrt2overN(i+2,3)
-    many_samples_search_sigma()
+    #many_samples_search_sigma()
     #load_and_print_searched_sigmas()
-    #new_main()
+    new_main()
 
 
